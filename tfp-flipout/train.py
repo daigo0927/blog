@@ -73,14 +73,14 @@ def train(model_type, epochs, batch_size, logdir):
         for images, labels in ds_train:
             train_step(images, labels)
         with train_sw.as_default():
-            tf.summary.scaler('loss', train_loss.result(), step=epoch)
-            tf.summary.scaler('accuracy', train_acc.result(), step=epoch)
+            tf.summary.scalar('loss', train_loss.result(), step=epoch)
+            tf.summary.scalar('accuracy', train_acc.result(), step=epoch)
 
         for images, labels in ds_test:
             test_step(images, labels)
         with test_sw.as_default():
-            tf.summary.scaler('loss', test_loss.result(), step=epoch)
-            tf.summary.scaler('accuracy', test_acc.result(), step=epoch)
+            tf.summary.scalar('loss', test_loss.result(), step=epoch)
+            tf.summary.scalar('accuracy', test_acc.result(), step=epoch)
 
         print('\nEpoch: {}, loss: {}, acc: {}, test loss: {}, test acc: {}'\
               .format(epoch+1, train_loss.result(), train_acc.result(),
