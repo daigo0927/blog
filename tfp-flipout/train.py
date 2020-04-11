@@ -28,10 +28,12 @@ def train(model_type, epochs, batch_size, logdir):
     ds_train = ds_train.shuffle(num_samples)\
       .batch(batch_size)\
       .map(preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)\
+      .repeat(epochs)\
       .prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     ds_test = ds_test.batch(batch_size)\
       .map(preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)\
+      .repeat(epochs)\
       .prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     kl_div_fn = (lambda q, p, _: tfd.kl_divergence(q, p) / num_samples)
