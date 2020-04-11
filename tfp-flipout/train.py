@@ -49,10 +49,7 @@ def train(model_type, epochs, batch_size, logdir):
 
     optimizer = optimizers.Adam()
     loss_fn = losses.SparseCategoricalCrossentropy(from_logits=True)
-    metrics = [
-        tf.keras.metrics.SparseCategoricalCrossentropy(from_logits=True),
-        tf.keras.metrics.SparseCategoricalAccuracy()
-    ]
+    metrics = [tf.keras.metrics.SparseCategoricalAccuracy(name='accuracy')]
     model.compile(optimizer, loss=loss_fn, metrics=metrics)
 
     callbacks = [tf.keras.callbacks.TensorBoard(log_dir=logdir)]
