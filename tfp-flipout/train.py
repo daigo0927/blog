@@ -42,12 +42,8 @@ def train(model_type, epochs, batch_size, logdir):
         model = ReparamCNN(num_classes=10, kernel_divergence_fn=kl_div_fn)
     else:
         model = FlipOutCNN(num_classes=10, kernel_divergence_fn=kl_div_fn)
-    # Dummy inference, detailed in https://github.com/daigo0927/blog/issues/3
-    # model.build(input_shape=[None, 32, 32, 3])
-    # import numpy as np
-    # _ = model(np.random.normal(size=(1, 32, 32, 3)))
-    # import ipdb
-    # ipdb.set_trace()
+    # Set input_shape explicitly (before compile) to instantiate model.losses
+    model.build(input_shape=[None, 32, 32, 3])
 
     optimizer = optimizers.Adam()
     loss_fn = losses.SparseCategoricalCrossentropy(from_logits=True)
