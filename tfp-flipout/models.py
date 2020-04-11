@@ -24,7 +24,7 @@ def ReparamCNN(num_classes, **kwargs):
         Conv2DReparam(64, 3, 2, 'same', activation=tf.nn.relu),
         Conv2DReparam(64, 3, 1, 'same', activation=tf.nn.relu),
         Conv2DReparam(128, 3, 2, 'same', activation=tf.nn.relu),
-        Conv2DReparam(128, 3, 2, 'same', activation=tf.nn.relu),
+        Conv2DReparam(128, 3, 1, 'same', activation=tf.nn.relu),
         Conv2DReparam(num_classes, 3, 1, 'same'),
         layers.GlobalAvgPool2D()
     ], **kwargs)
@@ -38,7 +38,7 @@ def FlipOutCNN(num_classes, **kwargs):
         Conv2DFlipOut(64, 3, 2, 'same', activation=tf.nn.relu),
         Conv2DFlipOut(64, 3, 1, 'same', activation=tf.nn.relu),
         Conv2DFlipOut(128, 3, 2, 'same', activation=tf.nn.relu),
-        Conv2DFlipOut(128, 3, 2, 'same', activation=tf.nn.relu),
+        Conv2DFlipOut(128, 3, 1, 'same', activation=tf.nn.relu),
         Conv2DFlipOut(num_classes, 3, 1, 'same'),
         layers.GlobalAvgPool2D()
     ], **kwargs)

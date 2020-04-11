@@ -29,7 +29,8 @@ def train(model_type, epochs, batch_size, logdir):
     ds_train, ds_test = tfds.load('cifar10',
                                   split=['train', 'test'],
                                   as_supervised=True)
-    ds_train = ds_train.shuffle(50000)\
+    num_samples = 50000
+    ds_train = ds_train.shuffle(num_samples)\
       .batch(batch_size)\
       .map(preprocess, num_parallel_calls=tf.data.experimental.AUTOTUNE)\
       .prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
@@ -50,7 +51,9 @@ def train(model_type, epochs, batch_size, logdir):
     def train_step(images, labels):
         with tf.GradientTape() as tape:
             logits = model(images, training=True)
-            loss = loss_fn(labels, logits)
+            nll = loss_fn(labels, logits)
+            kl = sum(model.losses)
+            loss = nll + kl / num_samples
         grads = tape.gradient(loss, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
