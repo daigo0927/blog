@@ -59,7 +59,7 @@ def train(model_type, epochs, batch_size, logdir):
               callbacks=callbacks,
               validation_data=ds_test,
               steps_per_epoch=num_samples // batch_size,
-              validation_steps=num_samples_test)
+              validation_steps=num_samples_test // batch_size)
 
     return None
 
