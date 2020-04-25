@@ -9,7 +9,7 @@ This scripts implement simple dataset pipelines with only few library dependenci
 
 ## Segmentation task
 
-```
+```python
 from image_segmentation import Dataset, build_dataloader
 
 import albumentations as A
@@ -37,7 +37,7 @@ for image, mask in loader:
 
 ## Transformation
 
-```
+```python
 from transforms import build_transform
 
 import yaml
