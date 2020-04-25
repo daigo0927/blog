@@ -6,7 +6,7 @@ names: ['Resize', 'HorizontalFlip', 'ToFloat']
 # Specifying arguments for transform function.
 # In the case a operation name exists in 'name' but not in args,
 # transform object is build without any arguments.
-args:
+params:
   Resize:
     height: 64
     width: 64

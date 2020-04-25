@@ -73,6 +73,9 @@ class Dataset:
         else:
             return image, image
 
+    def __len__(self):
+        return len(self.image_files)
+
 
 def build_dataloader(dataset, batch_size=1, shuffle=False):
     ''' A function that builds a dataloader.

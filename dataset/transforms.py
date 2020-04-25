@@ -1,7 +1,9 @@
+''' YAML configurable transformation pipeline '''
+
 import albumentations as A
 
 
-def transpose(permutation=(2, 0, 1)):
+def Transpose(permutation=(2, 0, 1)):
     ''' Transpose input data, expecting PyTorch axis transformation 
     
     Args:
@@ -16,15 +18,15 @@ def transpose(permutation=(2, 0, 1)):
     return A.Lambda(image=f, mask=f)
 
 
-ADDONS = {'transpose': transpose}
+ADDONS = {'Transpose': Transpose}
 
 
-def build_transform(names, args):
+def build_transform(names, params):
     ''' Build data transformation pipeline
 
     Args:
       names: A list of str, indicating operation class.
-      args: A dict of dict, specifing operation arguments.
+      params: A dict of dict, specifing operation arguments.
 
     Returns:
       albumentations.Compose object.
@@ -38,9 +40,7 @@ def build_transform(names, args):
         else:
             raise KeyError(f'{name} transformation is not implemented')
 
-        if name in params.keys():
-            transform = T(**params[])
-        else:
-            transform = T()
+        # Build instance with/without arguments
+        transform = T(**params[name]) if name in params.keys() else T()
         transforms.append(transform)
     return A.Compose(transforms)

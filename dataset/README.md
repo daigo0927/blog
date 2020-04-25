@@ -45,8 +45,8 @@ from transforms import build_transform
 
 import yaml
 
-with open('sample_transformation.yml', 'wb') as f:
-    transform_config = yaml.load(f) # See contents in sample files.
+with open('sample_transformation.yml', 'rb') as f:
+    transform_config = yaml.load(f, yaml.FullLoader)
 
 # Build albumentations.Compose object
 transform = build_transform(**transform_config)
