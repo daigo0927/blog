@@ -1,0 +1,15 @@
+# Transformation config for build_transform function
+
+# Specifying albumentation class or additional class exactly
+names: ['Resize', 'HorizontalFlip', 'ToFloat']
+
+# Specifying arguments for transform function.
+# In the case a operation name exists in 'name' but not in args,
+# transform object is build without any arguments.
+params:
+  Resize:
+    height: 64
+    width: 64
+  ToFloat:
+    max_value: 255
+    
