@@ -15,24 +15,27 @@ from image_segmentation import Dataset, build_dataloader
 import albumentations as A
 
 preprocessing = A.Compose([
-	A.Resize(64, 64),
+    A.Resize(64, 64),
 ])
 albumentation = A.Compose([
-	A.HorizontalFlip(),
-	A.VerticalFlip(),
+    A.HorizontalFlip(),
+    A.VerticalFlip(),
 ])
 
 dataset = Dataset(
-	image_paths=['image_dir1/*.png', 'image_dir2/*.png'],
-	mask_paths=['mask_dir1/*.png', 'mask_dir2/*.png],
-	preprocessing=preprocessing,
-	augmentation=augmentation
+    image_paths=['image_dir1/*.png', 'image_dir2/*.png'],
+    mask_paths=['mask_dir1/*.png', 'mask_dir2/*.png],
+    preprocessing=preprocessing,
+    augmentation=augmentation
 )
 
 loader = build_dataloader(dataset, batch_size=4, shuffle=True)
 
 for image, mask in loader:
-	# Your awesome training logic ...
+    # Your awesome training logic ...
+	
+# or you can also fit a keras model with the dataloader
+some_keral_model.fit(dataloader, epochs=10, ...)
 ```
 
 ## Transformation
@@ -43,10 +46,10 @@ from transforms import build_transform
 import yaml
 
 with open('sample_transformation.yml', 'wb') as f:
-	transform_config = yaml.load(f) # See contents in sample files.
+    transform_config = yaml.load(f) # See contents in sample files.
 
 # Build albumentations.Compose object
 transform = build_transform(**transform_config)
 
-This object can be treated as preprocessing/augmentation argument of above dataset class.
+# This object can be treated as preprocessing/augmentation argument of above dataset class.
 ```
