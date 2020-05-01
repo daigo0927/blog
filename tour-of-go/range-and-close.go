@@ -6,7 +6,7 @@ func fibonacci(n int, c chan int) {
 	x, y := 0, 1
 	for int := 0; int < n; int++ {
 		c <- x
-		x, y = y, x + y
+		x, y = y, x+y
 	}
 	close(c)
 }

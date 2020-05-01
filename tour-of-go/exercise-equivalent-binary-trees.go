@@ -34,7 +34,7 @@ func Same(t1, t2 *tree.Tree) bool {
 	go Walk(t1, ch1)
 	go Walk(t2, ch2)
 	for v1 := range ch1 {
-		v2 := <- ch2
+		v2 := <-ch2
 		if v1 != v2 {
 			return false
 		}
@@ -53,7 +53,7 @@ func main() {
 	var comp bool
 	comp = Same(tree.New(1), tree.New(1))
 	fmt.Printf("Comparison 1vs1: %v\n", comp)
-	
+
 	comp = Same(tree.New(1), tree.New(2))
-	fmt.Printf("Comparison 1vs2: %v\n", comp)	
+	fmt.Printf("Comparison 1vs2: %v\n", comp)
 }

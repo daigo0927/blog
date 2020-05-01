@@ -44,7 +44,7 @@ func Crawl(url string, depth int, fetrier Fetcher) {
 			go crawl_sub(u, depth-1)
 		}
 	}
-	
+
 	crawl_sub(url, depth)
 	time.Sleep(time.Second)
 	return

@@ -9,4 +9,3 @@ func add(x int, y int) int {
 func main() {
 	fmt.Println(add(42, 13))
 }
-	

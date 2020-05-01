@@ -7,7 +7,7 @@ func Pic(dx, dy int) [][]uint8 {
 	for i := 0; i < dy; i++ {
 		p[i] = make([]uint8, dx)
 		for j := 0; j < dx; j++ {
-			p[i][j] = uint8((i+j)/2)
+			p[i][j] = uint8((i + j) / 2)
 		}
 	}
 	return p
@@ -16,4 +16,3 @@ func Pic(dx, dy int) [][]uint8 {
 func main() {
 	pic.Show(Pic)
 }
-	

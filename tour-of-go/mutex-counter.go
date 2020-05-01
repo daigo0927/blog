@@ -8,7 +8,7 @@ import (
 
 // SafeCounter is safe to use concurrently.
 type SafeCounter struct {
-	v map[string]int
+	v   map[string]int
 	mux sync.Mutex
 }
 
@@ -33,7 +33,7 @@ func main() {
 	for i := 0; i < 1000; i++ {
 		go c.Inc("somekey")
 	}
-	
+
 	time.Sleep(time.Second)
 	fmt.Println(c.Value("somekey"))
 }
