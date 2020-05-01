@@ -14,7 +14,7 @@ type Fetcher interface {
 
 // Crawl uses fetcher to recursively crawl
 // pages starting with url, to a maximum of depth
-func Crawl(url string, depth int, fetrier Fetcher) {
+func Crawl(url string, depth int, fetcher Fetcher) {
 	// This implementation doesn't do either
 	cache := make(map[string]int)
 	var mutex sync.Mutex
