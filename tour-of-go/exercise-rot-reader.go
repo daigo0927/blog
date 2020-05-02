@@ -16,13 +16,13 @@ func (rr *rot13Reader) Read(rb []byte) (n int, e error) {
 		for i, v := range rb {
 			switch {
 			case v >= 'A' && v <= 'Z':
-				rb[i] = (v - 'A'+13)%26 + 'A'
+				rb[i] = (v-'A'+13)%26 + 'A'
 			case v >= 'a' && v <= 'z':
-				rb[i] = (v - 'a'+13)%26 + 'a'
+				rb[i] = (v-'a'+13)%26 + 'a'
 			}
 		}
 	}
-	return 
+	return
 }
 
 func main() {
