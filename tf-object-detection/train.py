@@ -9,7 +9,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import albumentations as A
 import xml.etree.ElementTree as ET
-from tqdm import tqdm
 from glob import glob
 from sklearn.model_selection import train_test_split
 from typing import List, Dict, Tuple
