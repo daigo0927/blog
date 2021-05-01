@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class PreprocessConfig:
-    target_size: Tuple[int, int] = field(default_factory=lambda: (64, 64))
+    target_size: Tuple[int, int] = (64, 64)
     normalize: bool = True
 
 
