@@ -97,6 +97,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
     model = nn.DataParallel(model, device_ids=np.arange(n_gpus))
+    model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 

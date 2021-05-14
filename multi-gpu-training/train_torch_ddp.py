@@ -109,24 +109,24 @@ def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate):
     dl_train = DataLoader(ds_train, batch_size=batch_size, sampler=sampler_train)
     dl_val = DataLoader(ds_val, batch_size=batch_size, sampler=sampler_val)
 
-    model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
-    model = DDP(model, device_ids=[rank])
+    model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(rank)
+    ddp_model = DDP(model, device_ids=[rank])
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(ddp_model.parameters(), lr=learning_rate)
 
     for e in range(epochs):
-        model.train()
+        ddp_model.train()
         for i, (images, labels) in enumerate(dl_train):
             images, labels = images.to(rank), labels.to(rank)
-            logits = model(images)
+            logits = ddp_model(images)
             criterion(logits, labels).backward()
             optimizer.step()
 
-        model.eval()
+        ddp_model.eval()
         with torch.no_grad():
             for images, labels in dl_val:
                 images, labels = images.to(rank), labels.to(rank)
-                logits = model(images)        
+                logits = ddp_model(images)        
 
     cleanup()
 
@@ -140,6 +140,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     t_train = time.time() - t_train_start
     logger.info(f'Training finished with {t_train:.4}s')    
 
+    
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch DDP training')
     parser.add_argument('datadir', type=str,
