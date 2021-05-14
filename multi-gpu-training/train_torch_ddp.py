@@ -83,6 +83,8 @@ def cleanup():
 
     
 def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate):
+    setup(rank, n_gpus)
+    
     preprocess = A.Compose([
         A.LongestMaxSize(max(IMAGE_SIZE)),
         A.PadIfNeeded(*IMAGE_SIZE),
@@ -123,7 +125,7 @@ def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate):
         model.eval()
         with torch.no_grad():
             for images, labels in dl_val:
-                images, labels = images.to(device), labels.to(device)
+                images, labels = images.to(rank), labels.to(rank)
                 logits = model(images)        
 
     cleanup()
