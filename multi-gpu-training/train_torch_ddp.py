@@ -32,14 +32,14 @@ class StanfordDogs(Dataset):
         self.preprocess = preprocess
         self.augment = augment
 
-        self.lists = scipy.io.loadmat(f'{datadir}/lists/{split}_list.mat')
+        self.lists = scipy.io.loadmat(f'{datadir}/{split}_list.mat')
 
     def __len__(self):
         return len(self.lists['file_list'])
 
     def __getitem__(self, idx):
         image_file = self.lists['file_list'][idx,0][0]
-        image_path = f'{self.datadir}/images/Images/{image_file}'
+        image_path = f'{self.datadir}/Images/{image_file}'
         label = self.lists['labels'][idx,0] - 1
 
         image = cv2.imread(image_path)
