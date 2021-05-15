@@ -12,16 +12,16 @@ IMAGE_SIZE = (128, 128)
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
 
-TF_CONFIG = {
-    'cluster': {
-        'worker': ['localhost:12345']
-    },
-    'task': {'type': 'worker', 'index': 0}
-}
-os.environ['TF_CONFIG'] = json.dumps(TF_CONFIG)
-
-
-def build_strategy(n_gpus):
+def build_strategy(worker_index):
+    tf_config = {
+        'cluster': {
+            'worker': ['localhost:12345', 'localhost:23456']
+            },
+        'task': {'type': 'worker', 'index': worker_index}
+        }
+    # Set environment variables for multi-worker communication
+    os.environ['TF_CONFIG'] = json.dumps(tf_config)
+    
     config = json.loads(os.environ['TF_CONFIG'])
     task_info = config['task']
     print('Current machine task:', task_info)
@@ -30,9 +30,6 @@ def build_strategy(n_gpus):
     
     gpus = tf.config.list_physical_devices('GPU')
     print('Available GPUs:', gpus)
-    tf.config.set_visible_devices(gpus[:n_gpus], 'GPU')
-    logical_gpus = tf.config.list_logical_devices('GPU')
-    print('Visible logical gpus:', logical_gpus)
     return strategy
 
 
@@ -62,8 +59,8 @@ def augment(image, label):
     return image, label
 
 
-def run(n_gpus, epochs, batch_size, learning_rate):
-    strategy = build_strategy(n_gpus)
+def run(worker_index, epochs, batch_size, learning_rate):
+    strategy = build_strategy(worker_index)
 
     ds_train, ds_val = tfds.load('stanford_dogs', split=['train', 'test'],
                                  as_supervised=True)
@@ -98,12 +95,12 @@ def run(n_gpus, epochs, batch_size, learning_rate):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='TF multi-GPU training')
-    parser.add_argument('-n', '--n-gpus', type=int, default=8,
-                        help='Number of gpus to use, [8] default')
+    parser.add_argument('-wi', '--worker-index', choices=[0, 1], required=True,
+                        help='Index of the worker, choose from [0,1] (required)')
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='Number of epochs, [10] default')
     parser.add_argument('-bs', '--batch-size', type=int, default=1024,
-                        help='Batch size, [1024] default')
+                        help='Overall batch size, [1024] default')
     parser.add_argument('-lr', '--learning-rate', type=float, default=0.001,
                         help='Learning rate, [0.001] default')
     args = parser.parse_args()
