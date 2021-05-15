@@ -182,7 +182,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
                    n_gpus, epochs, batch_size, learning_rate),
              nprocs=n_gpus,
              join=True)
-    t_train = time.time() - t_train_start
+    t_train = time.time() - t_start
     logger.info(f'\nTraining finished with {t_train:.4}s')    
 
     
