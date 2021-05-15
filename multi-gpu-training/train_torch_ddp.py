@@ -76,11 +76,16 @@ def setup(rank, n_gpus):
     os.environ['MASTER_PORT'] = '12355'
 
     # initialize the process group
-    dist.init_process_group("gloo", rank=rank, world_size=n_gpus)
+    dist.init_process_group("nccl", rank=rank, world_size=n_gpus)
 
 
 def cleanup():
     dist.destroy_process_group()
+
+
+def accuracy(logits, labels):
+    _, preds = torch.max(logits, 1)
+    return (preds == labels).sum().item() / labels.size(0)        
 
 
 def show_progress(epoch, batch, batch_total, **kwargs):
@@ -95,8 +100,10 @@ def show_progress(epoch, batch, batch_total, **kwargs):
     sys.stdout.flush()    
 
     
-def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate, ds_train, ds_val):
+def fit(rank, ds_train, ds_val, n_gpus, epochs, batch_size, learning_rate):
     setup(rank, n_gpus)
+
+    device = torch.device(f'cuda:{rank}')
 
     bs_per_gpu = batch_size//n_gpus
     sampler_train = DistributedSampler(ds_train, num_replicas=n_gpus, rank=rank,
@@ -106,8 +113,8 @@ def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate, ds_train, ds_v
     dl_train = DataLoader(ds_train, batch_size=bs_per_gpu, sampler=sampler_train)
     dl_val = DataLoader(ds_val, batch_size=bs_per_gpu, sampler=sampler_val)
 
-    model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(rank)
-    ddp_model = DDP(model, device_ids=[rank])
+    model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(device)
+    ddp_model = DDP(model, device_ids=[rank], output_device=rank)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(ddp_model.parameters(), lr=learning_rate)
 
@@ -116,25 +123,36 @@ def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate, ds_train, ds_v
         ddp_model.train()
         for i, (images, labels) in enumerate(dl_train):
             optimizer.zero_grad()
-            images, labels = images.to(rank), labels.to(rank)
+            images, labels = images.to(device), labels.to(device)
             logits = ddp_model(images)
             loss = criterion(logits, labels)
             loss.backward()
             optimizer.step()
+
+            acc = accuracy(logits, labels)
 
             if rank == 0:
                 if i == 0: print()
                 epoch_time = time.time() - t_epoch_start
                 show_progress(e, i, len(dl_train),
                               loss=loss.detach().cpu().numpy(),
+                              acc=acc.detach().cpu().numpy(),
                               epoch_time=epoch_time)
 
+        acc_val = []
         ddp_model.eval()
         with torch.no_grad():
             for images, labels in dl_val:
-                images, labels = images.to(rank), labels.to(rank)
+                images, labels = images.to(device), labels.to(device)
                 logits = ddp_model(images)
-                loss = criterion(logits, labels)
+                
+                acc = accuracy(logits, labels)
+                acc_val.append(acc.cpu().numpy())
+
+        if rank == 0:
+            acc = np.mean(acc_val)
+            t_epoch = time.time() - t_epoch_start
+            print(f'\nEpoch{e} val-acc: {acc:.4}, time: {t_epoch:.4}s')
 
     cleanup()
 
@@ -160,8 +178,8 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
                           preprocess=preprocess)
     
     mp.spawn(fit,
-             args=(datadir, n_gpus, epochs, batch_size, learning_rate,
-                   ds_train, ds_val),
+             args=(ds_train, ds_val,
+                   n_gpus, epochs, batch_size, learning_rate),
              nprocs=n_gpus,
              join=True)
     t_train = time.time() - t_train_start

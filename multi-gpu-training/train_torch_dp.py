@@ -2,7 +2,6 @@ import os
 import sys
 import cv2
 import time
-import logging
 import numpy as np
 import scipy.io
 import argparse
@@ -13,8 +12,6 @@ import torch.nn.functional as F
 import albumentations as A
 from glob import glob
 from torch.utils.data import Dataset, DataLoader
-
-logger = logging.getLogger(__name__)
 
 SEED = 42
 N_CLASSES = 120
@@ -68,6 +65,11 @@ class EfficientNet(nn.Module):
         return logit
 
 
+def accuracy(logits, labels):
+    _, preds = torch.max(logits, 1)
+    return (preds == labels).sum().item() / labels.size(0)    
+
+
 def show_progress(epoch, batch, batch_total, **kwargs):
     message = f'\r{epoch} epoch: [{batch}/{batch_total}batches'
     for key, item in kwargs.items():
@@ -82,7 +84,7 @@ def show_progress(epoch, batch, batch_total, **kwargs):
     
 def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     n_visible_gpus = torch.cuda.device_count()
-    logger.info(f'{n_visible_gpus} GPUs available')
+    print(f'{n_visible_gpus} GPUs available')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -127,22 +129,30 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
             loss.backward()
             optimizer.step()
 
+            acc = accuracy(logits, labels)
+
             epoch_time = time.time() - t_epoch_start
             show_progress(e, i, len(dl_train),
                           loss=loss.detach().cpu().numpy(),
-                          epoch_time=epoch_time)            
+                          acc=acc.detach().cpu().numpy(),
+                          epoch_time=epoch_time)
 
+        acc_val = []
         model.eval()
         with torch.no_grad():
             for images, labels in dl_val:
                 images, labels = images.to(device), labels.to(device)
                 logits = model(images)
+                
+                acc = accuracy(logits, labels)
+                acc_val.append(acc.cpu().numpy())
 
+        acc = np.mean(acc_val)
         t_epoch = time.time() - t_epoch_start
-        logger.info(f'\nEpoch{e} finished with {t_epoch:.4}s')
+        print(f'\nEpoch{e} val-acc: {acc:.4}, time: {t_epoch:.4}s')
 
     t_train = time.time() - t_train_start
-    logger.info(f'Training finished with {t_train:.4}s')
+    print(f'Training finished with {t_train:.4}s')
 
 
 if __name__ == '__main__':

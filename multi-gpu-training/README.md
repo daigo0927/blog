@@ -12,3 +12,14 @@
 
 - [Distributed overview](https://pytorch.org/tutorials/beginner/dist_overview.html)
 - [Distributed Data Parallel](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
+
+# Sample scripts
+
+## TensorFlow
+
+- `train_tf_mirroredstrategy.py`: Fast
+
+## PyTorch
+
+- `train_torch_dp.py`: Fast, but data loading seems to be bottleneck
+- `train_torch_ddp.py`: WIP
