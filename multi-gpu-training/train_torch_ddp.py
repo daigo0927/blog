@@ -89,7 +89,7 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
     dist.init_process_group("nccl")
 
     world_size = dist.get_world_size()  # Total GPUs over nodes
-    rank = dist.get_rank()  # Identifier of the current process group in [0, world_size-1]
+    global_rank = dist.get_rank()  # Identifier of the current process group in [0, world_size-1]
     n_gpus = torch.cuda.device_count()  # GPUs at current node
 
     print(
@@ -144,7 +144,7 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
 
             acc = accuracy(logits, labels)
 
-            if global_rank == 0:
+            if local_rank == 0:
                 if i == 0: print()
                 epoch_time = time.time() - t_epoch_start
                 show_progress(e, i, len(dl_train),
@@ -162,7 +162,7 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
                 acc = accuracy(logits, labels)
                 acc_val.append(acc.cpu().numpy())
 
-        if global_rank == 0:
+        if local_rank == 0:
             acc = np.mean(acc_val)
             t_epoch = time.time() - t_epoch_start
             print(f'\nEpoch{e} val-acc: {acc:.4}, time: {t_epoch:.4}s')
