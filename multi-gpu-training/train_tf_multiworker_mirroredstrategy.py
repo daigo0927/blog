@@ -25,14 +25,14 @@ def build_strategy(n_gpus):
     config = json.loads(os.environ['TF_CONFIG'])
     task_info = config['task']
     print('Current machine task:', task_info)
+
+    strategy = tf.distribute.MultiWorkerMirroredStrategy()    
     
     gpus = tf.config.list_physical_devices('GPU')
     print('Available GPUs:', gpus)
     tf.config.set_visible_devices(gpus[:n_gpus], 'GPU')
     logical_gpus = tf.config.list_logical_devices('GPU')
     print('Visible logical gpus:', logical_gpus)
-
-    strategy = tf.distribute.MultiWorkerMirroredStrategy()
     return strategy
 
 
