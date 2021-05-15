@@ -67,6 +67,18 @@ class EfficientNet(nn.Module):
         logit = self.fc(feature)
         return logit
 
+
+def show_progress(epoch, batch, batch_total, **kwargs):
+    message = f'\r{epoch} epoch: [{batch}/{batch_total}batches'
+    for key, item in kwargs.items():
+        if isinstance(item, float):
+            ms = f', {key}: {item:.4f}'
+        else:
+            ms = f', {key}: {item}'
+        message += ms
+    sys.stdout.write(message + ']')
+    sys.stdout.flush()        
+
     
 def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     n_visible_gpus = torch.cuda.device_count()
@@ -97,7 +109,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     dl_val = DataLoader(ds_val, batch_size=batch_size, num_workers=n_workers)
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
-    model = nn.DataParallel(model)
+    model = nn.DataParallel(model, device_ids=list(range(n_visible_gpus)))
     model.to(device)
     
     criterion = nn.CrossEntropyLoss()
@@ -108,10 +120,17 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
         t_epoch_start = time.time()
         model.train()
         for i, (images, labels) in enumerate(tqdm(dl_train, desc=f'Epoch{e+1}')):
+            optimizer.zero_grad()
             images, labels = images.to(device), labels.to(device)
             logits = model(images)
-            criterion(logits, labels).backward()
+            loss = criterion(logits, labels)
+            loss.backward()
             optimizer.step()
+
+            epoch_time = time.time() - t_epoch_start
+            show_progress(e, i, len(dl_train),
+                          loss=loss.detach().cpu().numpy(),
+                          epoch_time=epoch_time)            
 
         model.eval()
         with torch.no_grad():
@@ -120,7 +139,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
                 logits = model(images)
 
         t_epoch = time.time() - t_epoch_start
-        logger.info(f'Epoch{e} finished with {t_epoch:.4}s')
+        logger.info(f'\nEpoch{e} finished with {t_epoch:.4}s')
 
     t_train = time.time() - t_train_start
     logger.info(f'Training finished with {t_train:.4}s')
