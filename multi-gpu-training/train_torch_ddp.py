@@ -94,7 +94,7 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
 
     print(
         f"[{os.getpid()}] rank: {global_rank}, "
-        + f"world_size: {world_size}, n: {n_gpus}, device_ids: {device_ids} \n", end=''
+        + f"world_size: {world_size}, n: {n_gpus}, local_rank: {local_rank} \n", end=''
     )
 
     # Dataset preparation
