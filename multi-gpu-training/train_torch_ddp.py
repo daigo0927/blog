@@ -130,7 +130,9 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
     
     t_start = time.time()
     for e in range(epochs):
-        sampler.set_epoch(e)
+        sampler_train.set_epoch(e)
+        sampler_val.set_epoch(e)
+        
         t_epoch_start = time.time()
         
         ddp_model.train()
