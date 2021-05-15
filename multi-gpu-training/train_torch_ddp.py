@@ -13,6 +13,7 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 import albumentations as A
 from glob import glob
+from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader, DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
@@ -101,13 +102,14 @@ def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate):
                             preprocess=preprocess, augment=augment)
     ds_val = StanfordDogs(datadir, split='test',
                           preprocess=preprocess)
-    
+
+    bs = batch_size//n_gpus
     sampler_train = DistributedSampler(ds_train, num_replicas=n_gpus, rank=rank,
                                        shuffle=True)
     sampler_val = DistributedSampler(ds_val, num_replicas=n_gpus, rank=rank,
                                      shuffle=False)
-    dl_train = DataLoader(ds_train, batch_size=batch_size, sampler=sampler_train)
-    dl_val = DataLoader(ds_val, batch_size=batch_size, sampler=sampler_val)
+    dl_train = DataLoader(ds_train, batch_size=bs, sampler=sampler_train)
+    dl_val = DataLoader(ds_val, batch_size=bs, sampler=sampler_val)
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(rank)
     ddp_model = DDP(model, device_ids=[rank])
@@ -115,12 +117,18 @@ def fit(rank, datadir, n_gpus, epochs, batch_size, learning_rate):
     optimizer = torch.optim.Adam(ddp_model.parameters(), lr=learning_rate)
 
     for e in range(epochs):
+        pbar = tqdm(total=len(dl_train))
         ddp_model.train()
         for i, (images, labels) in enumerate(dl_train):
+            optimizer.zero_grad()
             images, labels = images.to(rank), labels.to(rank)
             logits = ddp_model(images)
             criterion(logits, labels).backward()
             optimizer.step()
+
+            if rank == 0:
+                pbar.update(1)
+        pbar.close()
 
         ddp_model.eval()
         with torch.no_grad():
