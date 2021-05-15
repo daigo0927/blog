@@ -4,7 +4,6 @@ import cv2
 import time
 import numpy as np
 import scipy.io
-import logging
 import argparse
 import timm
 import torch
@@ -16,8 +15,6 @@ import albumentations as A
 from glob import glob
 from torch.utils.data import Dataset, DataLoader, DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
-
-logger = logging.getLogger(__name__)
 
 SEED = 42
 N_CLASSES = 120
@@ -71,18 +68,6 @@ class EfficientNet(nn.Module):
         return logit
 
 
-def setup(rank, n_gpus):
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
-
-    # initialize the process group
-    dist.init_process_group("nccl", rank=rank, world_size=n_gpus)
-
-
-def cleanup():
-    dist.destroy_process_group()
-
-
 def accuracy(logits, labels):
     _, preds = torch.max(logits, 1)
     return (preds == labels).sum() / labels.size(0)
@@ -99,27 +84,57 @@ def show_progress(epoch, batch, batch_total, **kwargs):
     sys.stdout.write(message + ']')
     sys.stdout.flush()    
 
-    
-def fit(rank, ds_train, ds_val, n_gpus, epochs, batch_size, learning_rate):
-    setup(rank, n_gpus)
 
-    device = torch.device(f'cuda:{rank}')
+def run(datadir, local_rank, epochs, batch_size, learning_rate):
+    dist.init_process_group("nccl")
 
-    bs_per_gpu = batch_size//n_gpus
-    sampler_train = DistributedSampler(ds_train, num_replicas=n_gpus, rank=rank,
-                                       shuffle=True)
-    sampler_val = DistributedSampler(ds_val, num_replicas=n_gpus, rank=rank,
-                                     shuffle=False)
+    world_size = dist.get_world_size()  # Total processes(GPUs?) over nodes
+    global_rank = dist.get_rank()  # Identifier of the current process group in [0, world_size-1]
+    n_gpus = torch.cuda.device_count()  # GPUs at current node
+    device_ids = list(range(n_gpus))
+    device = device_ids[0]  # target device at current process
+
+    print(
+        f"[{os.getpid()}] rank: {global_rank}, "
+        + f"world_size: {world_size}, n: {n_gpus}, device_ids: {device_ids} \n", end=''
+    )
+
+    # Dataset preparation
+    preprocess = A.Compose([
+        A.LongestMaxSize(max(IMAGE_SIZE)),
+        A.PadIfNeeded(*IMAGE_SIZE),
+        A.Normalize()
+    ])
+
+    augment = A.Compose([
+        A.RandomBrightness(0.3),
+        A.RandomContrast(0.2),
+        A.HorizontalFlip()
+    ])
+
+    ds_train = StanfordDogs(datadir, split='train',
+                            preprocess=preprocess, augment=augment)
+    ds_val = StanfordDogs(datadir, split='test',
+                          preprocess=preprocess)
+
+    bs_per_gpu = batch_size//world_size
+    # num_replicas and rank arguments are automatically assigned the global ones via dist.get_*
+    sampler_train = DistributedSampler(ds_train, shuffle=True)
+    sampler_val = DistributedSampler(ds_val, shuffle=False)
     dl_train = DataLoader(ds_train, batch_size=bs_per_gpu, sampler=sampler_train)
     dl_val = DataLoader(ds_val, batch_size=bs_per_gpu, sampler=sampler_val)
 
+    # Build model and setup training
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(device)
-    ddp_model = DDP(model, device_ids=[rank], output_device=rank)
+    ddp_model = DDP(model, device_ids=device_ids)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(ddp_model.parameters(), lr=learning_rate)
-
+    
+    t_start = time.time()
     for e in range(epochs):
+        sampler.set_epoch(e)
         t_epoch_start = time.time()
+        
         ddp_model.train()
         for i, (images, labels) in enumerate(dl_train):
             optimizer.zero_grad()
@@ -131,7 +146,7 @@ def fit(rank, ds_train, ds_val, n_gpus, epochs, batch_size, learning_rate):
 
             acc = accuracy(logits, labels)
 
-            if rank == 0:
+            if global_rank == 0:
                 if i == 0: print()
                 epoch_time = time.time() - t_epoch_start
                 show_progress(e, i, len(dl_train),
@@ -149,49 +164,21 @@ def fit(rank, ds_train, ds_val, n_gpus, epochs, batch_size, learning_rate):
                 acc = accuracy(logits, labels)
                 acc_val.append(acc.cpu().numpy())
 
-        if rank == 0:
+        if global_rank == 0:
             acc = np.mean(acc_val)
             t_epoch = time.time() - t_epoch_start
             print(f'\nEpoch{e} val-acc: {acc:.4}, time: {t_epoch:.4}s')
 
-    cleanup()
-
-
-def run(datadir, n_gpus, epochs, batch_size, learning_rate):
-    t_start = time.time()
-
-    preprocess = A.Compose([
-        A.LongestMaxSize(max(IMAGE_SIZE)),
-        A.PadIfNeeded(*IMAGE_SIZE),
-        A.Normalize()
-    ])
-
-    augment = A.Compose([
-        A.RandomBrightness(0.3),
-        A.RandomContrast(0.2),
-        A.HorizontalFlip()
-    ])
-
-    ds_train = StanfordDogs(datadir, split='train',
-                            preprocess=preprocess, augment=augment)
-    ds_val = StanfordDogs(datadir, split='test',
-                          preprocess=preprocess)
-    
-    mp.spawn(fit,
-             args=(ds_train, ds_val,
-                   n_gpus, epochs, batch_size, learning_rate),
-             nprocs=n_gpus,
-             join=True)
     t_train = time.time() - t_start
-    logger.info(f'\nTraining finished with {t_train:.4}s')    
+    print(f'\nTraining finished with {t_train:.4}s')
+    dist.destroy_process_group()
 
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch DDP training')
     parser.add_argument('datadir', type=str,
                         help='Path to the Stanford dogs dataset directory')
-    parser.add_argument('-n', '--n-gpus', type=int, default=8,
-                        help='Number of gpus to use, [8] default')
+    parser.add_argument('--local_rank', type=int)
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='Number of epochs, [10] default')
     parser.add_argument('-bs', '--batch-size', type=int, default=1024,
