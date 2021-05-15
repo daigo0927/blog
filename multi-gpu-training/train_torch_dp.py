@@ -11,6 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import albumentations as A
 from glob import glob
+from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
 
 logger = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     n_visible_gpus = torch.cuda.device_count()
     logger.info(f'{n_visible_gpus} GPUs available')
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     preprocess = A.Compose([
         A.LongestMaxSize(max(IMAGE_SIZE)),
@@ -98,6 +99,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
     model = nn.DataParallel(model, device_ids=np.arange(n_gpus))
     model.to(device)
+    
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -105,7 +107,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     for e in range(epochs):
         t_epoch_start = time.time()
         model.train()
-        for i, (images, labels) in enumerate(dl_train):
+        for i, (images, labels) in enumerate(tqdm(dl_train, desc='Train')):
             images, labels = images.to(device), labels.to(device)
             logits = model(images)
             criterion(logits, labels).backward()
