@@ -97,7 +97,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     dl_val = DataLoader(ds_val, batch_size=batch_size, num_workers=n_workers)
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
-    model = nn.DataParallel(model, device_ids=np.arange(n_gpus))
+    model = nn.DataParallel(model)
     model.to(device)
     
     criterion = nn.CrossEntropyLoss()
@@ -107,7 +107,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     for e in range(epochs):
         t_epoch_start = time.time()
         model.train()
-        for i, (images, labels) in enumerate(tqdm(dl_train, desc='Train')):
+        for i, (images, labels) in enumerate(tqdm(dl_train, desc=f'Epoch{e+1}')):
             images, labels = images.to(device), labels.to(device)
             logits = model(images)
             criterion(logits, labels).backward()
