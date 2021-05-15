@@ -118,7 +118,7 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     for e in range(epochs):
         t_epoch_start = time.time()
         model.train()
-        for i, (images, labels) in enumerate(dl_train, desc=f'Epoch{e+1}'):
+        for i, (images, labels) in enumerate(dl_train):
             optimizer.zero_grad()
             images, labels = images.to(device), labels.to(device)
             logits = model(images)
