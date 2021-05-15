@@ -95,7 +95,7 @@ def run(worker_index, epochs, batch_size, learning_rate):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='TF multi-GPU training')
-    parser.add_argument('-wi', '--worker-index', choices=[0, 1], required=True,
+    parser.add_argument('-wi', '--worker-index', choices=[0, 1], type=int, required=True,
                         help='Index of the worker, choose from [0,1] (required)')
     parser.add_argument('-e', '--epochs', type=int, default=10,
                         help='Number of epochs, [10] default')
