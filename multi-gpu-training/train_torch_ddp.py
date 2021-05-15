@@ -85,7 +85,7 @@ def cleanup():
 
 def accuracy(logits, labels):
     _, preds = torch.max(logits, 1)
-    return (preds == labels).sum().item() / labels.size(0)        
+    return (preds == labels).sum() / labels.size(0)
 
 
 def show_progress(epoch, batch, batch_total, **kwargs):
