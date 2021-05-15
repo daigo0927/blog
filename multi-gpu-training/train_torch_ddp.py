@@ -88,11 +88,9 @@ def show_progress(epoch, batch, batch_total, **kwargs):
 def run(datadir, local_rank, epochs, batch_size, learning_rate):
     dist.init_process_group("nccl")
 
-    world_size = dist.get_world_size()  # Total processes(GPUs?) over nodes
-    global_rank = dist.get_rank()  # Identifier of the current process group in [0, world_size-1]
+    world_size = dist.get_world_size()  # Total GPUs over nodes
+    rank = dist.get_rank()  # Identifier of the current process group in [0, world_size-1]
     n_gpus = torch.cuda.device_count()  # GPUs at current node
-    device_ids = list(range(n_gpus))
-    device = device_ids[0]  # target device at current process
 
     print(
         f"[{os.getpid()}] rank: {global_rank}, "
@@ -125,8 +123,8 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
     dl_val = DataLoader(ds_val, batch_size=bs_per_gpu, sampler=sampler_val)
 
     # Build model and setup training
-    model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(device)
-    ddp_model = DDP(model, device_ids=device_ids)
+    model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES).to(local_rank)
+    ddp_model = DDP(model, device_ids=[local_rank])
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(ddp_model.parameters(), lr=learning_rate)
     
@@ -138,7 +136,7 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
         ddp_model.train()
         for i, (images, labels) in enumerate(dl_train):
             optimizer.zero_grad()
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(local_rank), labels.to(local_rank)
             logits = ddp_model(images)
             loss = criterion(logits, labels)
             loss.backward()
@@ -158,7 +156,7 @@ def run(datadir, local_rank, epochs, batch_size, learning_rate):
         ddp_model.eval()
         with torch.no_grad():
             for images, labels in dl_val:
-                images, labels = images.to(device), labels.to(device)
+                images, labels = images.to(local_rank), labels.to(local_rank)
                 logits = ddp_model(images)
                 
                 acc = accuracy(logits, labels)
