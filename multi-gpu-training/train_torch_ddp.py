@@ -86,16 +86,18 @@ def show_progress(epoch, batch, batch_total, **kwargs):
 
 
 def run(datadir, local_rank, epochs, batch_size, learning_rate):
+    pid = os.getpid()
+    env_dict = {
+        key: os.environ[key]
+        for key in ("MASTER_ADDR", "MASTER_PORT", "RANK", "WORLD_SIZE")
+    }
+    print(f"[{pid}] Initializing process group with: {env_dict}")
     dist.init_process_group("nccl")
 
     world_size = dist.get_world_size()  # Total GPUs over nodes
-    global_rank = dist.get_rank()  # Identifier of the current process group in [0, world_size-1]
     n_gpus = torch.cuda.device_count()  # GPUs at current node
 
-    print(
-        f"[{os.getpid()}] rank: {global_rank}, "
-        + f"world_size: {world_size}, n: {n_gpus}, local_rank: {local_rank} \n", end=''
-    )
+    print(f'[{pid}] Node info: GPUs: {n_gpus}, local_rank: {local_rank}')
 
     # Dataset preparation
     preprocess = A.Compose([
