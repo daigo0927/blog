@@ -20,14 +20,17 @@
 
 # Sample scripts
 
+Scirpts are confirmed on a node with 8 A100 GPUs. For the multi-node experiment, I split the 8 GPUs into 2x4GPUs for simulating a multi-node environment.
+
 ## TensorFlow
 
-- `train_tf_mirroredstrategy.py`: Fast
-- `train_tf_multiworker_mirroredstrategy.py`: Fast
+- `train_tf_mirroredstrategy.py`: Basic data parallel training on a single node
+- `train_tf_multiworker_mirroredstrategy.py`: Data parallel training with 2 nodes (i.e. workers)
   - `run_tf_mwms.sh`: Shell script for running multi-worker training
 
 ## PyTorch
 
-- `train_torch_dp.py`: Fast, but data loading seems to be a bottleneck_features
-- `train_torch_ddp.py`: WIP
+- `train_torch_dp.py`: Basic data parallel training on a single node
+- `train_torch_ddp.py`: Data parallel training with 2 nodes
+  - `run_torch_ddp.sh`: Shell script for running DDP training
 
