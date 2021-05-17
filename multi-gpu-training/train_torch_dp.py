@@ -105,14 +105,14 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     ds_val = StanfordDogs(datadir, split='test',
                           preprocess=preprocess)
 
-    n_workers = max(4, n_visible_gpus)
+    n_workers = 8
     dl_train = DataLoader(ds_train, batch_size=batch_size,
                           shuffle=True, num_workers=n_workers)
     dl_val = DataLoader(ds_val, batch_size=batch_size, num_workers=n_workers)
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
     model = nn.DataParallel(model, device_ids=list(range(n_gpus)))
-    # model.to(device)
+    model.to(device)
     
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
