@@ -83,11 +83,14 @@ def show_progress(epoch, batch, batch_total, **kwargs):
 
     
 def run(datadir, n_gpus, epochs, batch_size, learning_rate):
-    n_visible_gpus = torch.cuda.device_count()
-    print(f'{n_visible_gpus} GPUs available')
+    n_max_gpus = torch.cuda.device_count()
+    print(f'{n_max_gpus} GPUs available')
+    n_gpus = min(n_gpus, n_max_gpus)
+    print(f'Using {n_gpus} GPUs')
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+    device_ids = list(range(n_gpus))
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
     preprocess = A.Compose([
         A.LongestMaxSize(max(IMAGE_SIZE)),
         A.PadIfNeeded(*IMAGE_SIZE),
@@ -105,13 +108,13 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     ds_val = StanfordDogs(datadir, split='test',
                           preprocess=preprocess)
 
-    n_workers = max(4, n_visible_gpus)
+    n_workers = 8
     dl_train = DataLoader(ds_train, batch_size=batch_size,
                           shuffle=True, num_workers=n_workers)
     dl_val = DataLoader(ds_val, batch_size=batch_size, num_workers=n_workers)
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
-    model = nn.DataParallel(model, device_ids=list(range(n_visible_gpus)))
+    model = nn.DataParallel(model, device_ids=device_ids)
     model.to(device)
     
     criterion = nn.CrossEntropyLoss()

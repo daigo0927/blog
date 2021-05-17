@@ -22,6 +22,21 @@
 
 Scirpts are confirmed on a node with 8 A100 GPUs. For the multi-node experiment, I split the 8 GPUs into 2x4GPUs for simulating a multi-node environment.
 
+## Environment
+
+I have done the experiments with below environment. Different version of libraries may be acceptable but not tested.
+
+- Machine settings
+  - 8 NVIDIA A100 GPUs
+  - python 3.8.7
+  - cuda 11.0.3
+  - cudnn 8.2.0
+  - nccl 2.8.4-1
+- Python libraries
+  - tensorflow 2.4.0
+  - torch 1.8.1+cu111
+  - others listed in `requirements.txt`
+
 ## TensorFlow
 
 - `train_tf_mirroredstrategy.py`: Basic data parallel training on a single node
