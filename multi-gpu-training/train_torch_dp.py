@@ -83,8 +83,8 @@ def show_progress(epoch, batch, batch_total, **kwargs):
 
     
 def run(datadir, n_gpus, epochs, batch_size, learning_rate):
-    n_visible_gpus = torch.cuda.device_count()
-    print(f'{n_visible_gpus} GPUs available')
+    n_max_gpus = torch.cuda.device_count()
+    print(f'{n_max_gpus} GPUs available')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -111,8 +111,8 @@ def run(datadir, n_gpus, epochs, batch_size, learning_rate):
     dl_val = DataLoader(ds_val, batch_size=batch_size, num_workers=n_workers)
 
     model = EfficientNet(backbone='efficientnet_b2', n_classes=N_CLASSES)
-    model = nn.DataParallel(model, device_ids=list(range(n_visible_gpus)))
-    model.to(device)
+    model = nn.DataParallel(model, device_ids=list(range(n_gpus)))
+    # model.to(device)
     
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
