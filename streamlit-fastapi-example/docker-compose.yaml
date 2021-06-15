@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: ./streamlit-front
+      dockerfile: Dockerfile
+    image: st-fastapi-example/app:latest
+    container_name: app
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - st_fastapi_net
+    environment:
+      ML_SERVER_HOST: backend:80
+    ports:
+      - 8080:8080
+
+  backend:
+    build:
+      context: ./fastapi-backend
+      dockerfile: Dockerfile
+    image: st-fastapi-example/backend:latest
+    container_name: backend
+    restart: unless-stopped
+    networks:
+      - st_fastapi_net
+
+networks:
+  st_fastapi_net:
+    driver: bridge
+  
+    
+      
