@@ -11,7 +11,7 @@ image_files = st.file_uploader('Target image file',
                                accept_multiple_files=True)
 
 if len(image_files) > 0:
-    files = [('files', f.getvalue()) for f in image_files]
+    files = [('files', file) for file in image_files]
 
     r = httpx.post(f'http://{BACKEND_HOST}/predict', files=files)
     st.write(r)
