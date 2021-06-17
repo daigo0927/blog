@@ -3,7 +3,7 @@ import httpx
 import streamlit as st
 
 
-ML_SERVER_HOST = os.environ.get('ML_SERVER_HOST', '127.0.0.1:80')
+BACKEND_HOST = os.environ.get('BACKEND_HOST', '127.0.0.1:80')
 
 
 image_files = st.file_uploader('Target image file',
@@ -13,7 +13,8 @@ image_files = st.file_uploader('Target image file',
 if len(image_files) > 0:
     files = [('files', f.getvalue()) for f in image_files]
 
-    origin = f'http://{ML_SERVER_HOST}'
-    r = httpx.post(f'{origin}/predict', files=files)
+    r = httpx.post(f'http://{BACKEND_HOST}/predict', files=files)
     st.write(r)
 
+# r = httpx.get(f'http://{BACKEND_HOST}/result')
+# result_jobs = r.json()['result_jobs']

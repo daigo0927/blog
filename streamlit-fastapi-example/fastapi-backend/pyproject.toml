@@ -7,6 +7,9 @@ authors = ["Daigo Hirooka <daigo.hirooka@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 fastapi = {extras = ["all"], version = "^0.65.2"}
+google-cloud-storage = "^1.38.0"
+tensorflow = "^2.5.0"
+matplotlib = "^3.4.2"
 
 [tool.poetry.dev-dependencies]
 

@@ -12,7 +12,7 @@ services:
     networks:
       - st_fastapi_net
     environment:
-      ML_SERVER_HOST: backend:80
+      BACKEND_HOST: backend:80
     ports:
       - 8080:8080
 
@@ -25,6 +25,11 @@ services:
     restart: unless-stopped
     networks:
       - st_fastapi_net
+    ports:
+      - 80:80
+    environment:
+      BUCKET_NAME: streamlit-fastapi-example
+      GOOGLE_APPLICATION_CREDENTIALS: gcs-credentials.json
 
 networks:
   st_fastapi_net:
