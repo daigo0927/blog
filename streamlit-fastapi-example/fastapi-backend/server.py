@@ -58,8 +58,7 @@ def predict_images(files: List[UploadFile], job_id: str) -> None:
 async def predict(files: List[UploadFile] = File(...),
                   background_tasks: BackgroundTasks = None):
     job_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # background_tasks.add_task(predict_images, files=files, job_id=job_id)
-    predict_images(files=files, job_id=job_id)
+    background_tasks.add_task(predict_images, files=files, job_id=job_id)
     return f'{len(files)} files are submitted'
 
 
