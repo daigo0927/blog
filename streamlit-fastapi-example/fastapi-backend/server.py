@@ -3,16 +3,28 @@ import sys
 import time
 import asyncio
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
+import matplotlib.pyplot as plt
 from typing import List, Dict
 from datetime import datetime
-from fastapi import FastAPI, BackgroundTasks, File, UploadFile
-from tensorflow.keras.applications.efficientnet import EfficientNetB0, decode_predictions
+from logging import getLogger
 from google.cloud import storage
+from fastapi import FastAPI, BackgroundTasks, File, UploadFile
+from fastapi.logger import logger
+from tensorflow.keras.applications.efficientnet import EfficientNetB0, decode_predictions
+
 
 BUCKET_NAME = os.environ.get('BUCKET_NAME')
 IMAGE_SIZE = (224, 224)
+
+gunicorn_error_logger = getLogger("gunicorn.error")
+gunicorn_logger = getLogger("gunicorn")
+uvicorn_access_logger = getLogger("uvicorn.access")
+uvicorn_access_logger.handlers = gunicorn_error_logger.handlers
+logger.handlers = gunicorn_error_logger.handlers
+logger.setLevel(gunicorn_logger.level)
+
+plt.switch_backend('Agg')
 
 app = FastAPI()
 
@@ -62,6 +74,10 @@ async def predict(files: List[UploadFile] = File(...),
     return f'{len(files)} files are submitted'
 
 
-@app.get('/result')
-async def result(job_id: str = None, limit=20):
-    return 
+@app.get('/results')
+async def results(job_id: str = None, limit=5):
+    client = storage.Client()
+    prefix = f'results/{job_id}' if job_id is not None else 'results'
+    blobs = client.list_blobs(bucket_or_name=BUCKET_NAME, prefix=prefix)
+    blob_names = [b.name for b in blobs]
+    return blob_names
