@@ -28,8 +28,6 @@ services:
     ports:
       - 80:80
     environment:
-      BUCKET_NAME: streamlit-fastapi-example
-      GOOGLE_APPLICATION_CREDENTIALS: gcs-credentials.json
       APP_MODULE: server:app
 
 networks:
