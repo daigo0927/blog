@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "fastapi-backend"
+version = "0.1.0"
+description = ""
+authors = ["Daigo Hirooka <daigo.hirooka@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = {extras = ["all"], version = "^0.65.2"}
+matplotlib = "^3.4.2"
+tensorflow-cpu = "^2.5.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
