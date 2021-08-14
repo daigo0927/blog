@@ -21,7 +21,7 @@ docker push gcr.io/<project-id>/workflow-example-preprocess:latest
 
 ``` bash
 # preprocess
-docker container run -e GOOGLE_APPLICATION_CREDENTIALS=<GCS credential json> --name preprocess --rm workflow/preprocess:latest --job-dir . --csv-path gs://workflow-example-dataset/penguins.csv
+docker container run -e GOOGLE_APPLICATION_CREDENTIALS=<GCS credential json> --name preprocess --rm workflow/preprocess:latest --output-dir . --csv-path gs://<source-dir>/penguins.csv
 ```
 
 ### Run as a single custom-job
