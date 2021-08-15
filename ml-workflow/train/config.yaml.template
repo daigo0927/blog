@@ -1,13 +1,13 @@
 workerPoolSpecs:
   machineSpec:
-    machineType: e2-standard-4
+    machineType: c2-standard-4
     # acceleratorType: ACCELERATOR_TYPE
     # acceleratorCount: ACCELERATOR_COUNT
   replicaCount: 1
   containerSpec:
     imageUri: gcr.io/<project-id>/<image>:<tag>
     args:
-      - '--datadir gs://<preprocessed-bucket>/<directory>'
-      - '--out-bucket gs://<output-bucket>'
-      - '--learning-rate 0.1'
-      - '--max-depth 10'
+      - '--datadir=gs://<preprocessed-bucket>/<directory>'
+      - '--out-bucket=<output-bucket>'
+      - '--learning-rate=0.1'
+      - '--max-depth=10'
