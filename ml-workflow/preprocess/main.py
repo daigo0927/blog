@@ -11,7 +11,7 @@ def run(csv_path: str, output_dir: str, n_splits: int) -> None:
     print(f"Load CSV from: {csv_path}")
 
     df['target'] = df['species'].map({'Adelie': 0, 'Chinstrap': 1, 'Gentoo': 2})
-    df = df.drop(['species'], axis=1)
+    df = df.drop(['species', 'island', 'sex'], axis=1)
     
     cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=SEED)
     idx_train, idx_val = next(cv.split(df, df['target']))
