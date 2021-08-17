@@ -52,5 +52,15 @@ docker push gcr.io/<project-id>/workflow-example-train:latest
 ## Run as a custom job
 
 ``` bash
+# run
 gcloud ai custom-jobs create --region=<region> --display-name=<job-name> --config=<config-yaml>
+
+# describe specific job state
+gcloud ai custom-jobs describe <job-id> --region=<region>
+
+# describe specific job via curl
+curl -X GET -H "Authorization: Bearer "$(gcloud auth application-default print-access-token) https://<location>-aiplatform.googleapis.com/v1beta1/projects/<project-id>/locations/<location>/customJobs/<job-id>
+
+# list jobs (filter succeeded jobs)
+gcloud ai custom-jobs list --region=<region> --filter state=JOB_STATE_SUCCEEDED
 ```
