@@ -1,0 +1,83 @@
+main:
+  params: [args]
+  steps:
+    - assign_vars:
+        assign:
+          - location: ${args.location}
+          - project_id: ${args.project_id}
+    - preprocess:
+        call: http.post
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/projects/"+project_id+"/locations/"+location+"/customJobs"}
+          body:
+            displayName: workflow-preprocess
+            jobSpec:
+              workerPoolSpecs:
+                machineSpec:
+                  machineType: e2-standard-4
+                replicaCount: 1
+                containerSpec:
+                  imageUri: ${"gcr.io/"+project_id+"/workflow-example-preprocess:latest"}
+                  args:
+                    - '--csv-path=gs://workflow-example-dataset/penguins.csv'
+                    - '--output-dir=gs://workflow-example-preprocess/test'
+          auth:
+            type: OAuth2
+        result: preprocess_resp
+    - wait_preprocess:
+        call: wait_completion
+        args:
+          location: ${location}
+          job_response: ${preprocess_resp}
+        result: preprocess_status
+    - train:
+        call: http.post
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/projects/"+project_id+"/locations/"+location+"/customJobs"}
+          body:
+            displayName: workflow-train
+            jobSpec:
+              workerPoolSpecs:
+                machineSpec:
+                  machineType: c2-standard-4
+                replicaCount: 1
+                containerSpec:
+                  imageUri: ${"gcr.io/"+project_id+"/workflow-example-train:latest"}
+                  args:
+                    - '--datadir=gs://workflow-example-preprocess/test'
+                    - '--out-bucket=workflow-example-train'
+                    - '--learning-rate=0.1'
+                    - '--max-depth=10'
+          auth:
+            type: OAuth2
+        result: train_resp
+    - wait_train:
+        call: wait_completion
+        args:
+          location: ${location}
+          job_response: ${train_resp}
+        result: train_status
+    - finish:
+        return: ${train_status.body}
+
+wait_completion:
+  params: [location, job_response]
+  steps:
+    - sleep:
+        call: sys.sleep
+        args:
+          seconds: 60
+    - get_status:
+        call: http.get
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/"+job_response.body.name}
+          auth:
+            type: OAuth2
+        result: status
+    - check_status:
+        switch:
+          - condition: ${status.body.state == "JOB_STATE_SUCCEEDED"}
+            return: ${status}
+          - condition: ${status.body.state == "JOB_STATE_FAILED"}
+            raise: ${status.body}
+        next: sleep
