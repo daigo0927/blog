@@ -1,0 +1,85 @@
+main:
+  params: [args]
+  steps:
+    - assign_vars:
+        assign:
+          - location: ${args.location}
+          - project_id: ${args.project_id}
+    - preprocess:
+        call: http.post
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/projects/"+project_id+"/locations/"+location+"/customJobs"}
+          body:
+            displayName: workflow-preprocess
+            jobSpec:
+              workerPoolSpecs:
+                machineSpec:
+                  machineType: e2-standard-4
+                replicaCount: 1
+                containerSpec:
+                  imageUri: ${"gcr.io/"+project_id+"/workflow-example-preprocess:latest"}
+                  args:
+                    - '--csv-path=gs://workflow-example-dataset/penguins.csv'
+                    - '--output-dir=gs://workflow-example-preprocess/test'
+          auth:
+            type: OAuth2
+        result: preprocess_resp
+    - sleep_preprocess:
+        call: sys.sleep
+        args:
+          seconds: 60
+    - get_preprocess_status:
+        call: http.get
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/"+preprocess_resp.body.name}
+          auth:
+            type: OAuth2
+        result: preprocess_status
+    - wait_preprocess:
+        switch:
+          - condition: ${preprocess_status.body.state == "JOB_STATE_SUCCEEDED"}
+            next: train
+          - condition: ${preprocess_status.body.state == "JOB_STATE_FAILED"}
+            return: ${preprocess_status.body}
+        next: sleep_preprocess
+    - train:
+        call: http.post
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/projects/"+project_id+"/locations/"+location+"/customJobs"}
+          body:
+            displayName: workflow-train
+            jobSpec:
+              workerPoolSpecs:
+                machineSpec:
+                  machineType: c2-standard-4
+                replicaCount: 1
+                containerSpec:
+                  imageUri: ${"gcr.io/"+project_id+"/workflow-example-train:latest"}
+                  args:
+                    - '--datadir=gs://workflow-example-preprocess/test'
+                    - '--out-bucket=workflow-example-train'
+                    - '--learning-rate=0.1'
+                    - '--max-depth=10'
+          auth:
+            type: OAuth2
+        result: train_resp
+    - sleep_train:
+        call: sys.sleep
+        args:
+          seconds: 60
+    - get_train_status:
+        call: http.get
+        args:
+          url: ${"https://"+location+"-aiplatform.googleapis.com/v1/"+train_resp.body.name}
+          auth:
+            type: OAuth2
+        result: train_status
+    - wait_train:
+        switch:
+          - condition: ${train_status.body.state == "JOB_STATE_SUCCEEDED"}
+            next: finish
+          - condition: ${train_status.body.state == "JOB_STATE_FAILED"}
+            return: ${train_status.body}
+        next: sleep_train
+    - finish:
+        return: ${train_status.body}
