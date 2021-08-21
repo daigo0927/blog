@@ -1,0 +1,23 @@
+name: Train
+description: Train and evaluate data on LightGBM
+inputs:
+  - {name: train_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the train file'}
+  - {name: val_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the val file'}
+  - {name: learning_rate, type: Float, default: 0.1, description: 'Learning rate'}
+  - {name: max_depth, type: Integer, default: 10, description: 'Max tree depth'}
+outputs:
+  - {name: model_path, type: {GCSPath: {data_type: LightGBM}}, description: 'Path to the trained LightGBM model'}
+metadata:
+  annotations:
+    author: Daigo Hirooka <daigo.hirooka@example.com>
+implementation:
+  container:
+    image: gcr.io/machine-learning-dhirooka/vp-sample-train:latest
+    command: [python, main.py]
+    args: [
+      --train-path, {inputPath: train_path},
+      --val-path, {inputPath: val_path},
+      --learning-rate, {inputValue: learning_rate},
+      --max-depth, {inputValue: max_depth},
+      --model-path, {outputPath: model_path}
+    ]
