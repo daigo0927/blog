@@ -1,5 +1,5 @@
-name: Train
-description: Train and evaluate data on LightGBM
+name: train
+description: Train on LightGBM
 inputs:
   - {name: train_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the train file'}
   - {name: val_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the val file'}

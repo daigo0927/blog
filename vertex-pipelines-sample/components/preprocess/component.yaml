@@ -1,4 +1,4 @@
-name: Preprocess
+name: preprocess
 description: Preprocess raw data
 inputs:
   # - {name: src_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the raw csv file'}
