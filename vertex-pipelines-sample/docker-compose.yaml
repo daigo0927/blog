@@ -12,3 +12,9 @@ services:
       dockerfile: Dockerfile
     image: gcr.io/${GCP_PROJECT_ID}/vp-sample-train:latest
     container_name: train
+  evaluate:
+    build:
+      context: ./components/evaluate
+      dockerfile: Dockerfile
+    image: gcr.io/${GCP_PROJECT_ID}/vp-sample-evaluate:latest
+    container_name: evaluate

@@ -7,7 +7,7 @@ preprocess_op_raw = components.load_component_from_file(
 )
 preprocess_op = gcc_exp.run_as_vertex_ai_custom_job(
     component_spec=preprocess_op_raw,
-    display_name='preprocess job',
+    display_name='preprocess-job',
     machine_type='e2-standard-4'
 )
 
@@ -16,8 +16,17 @@ train_op_raw = components.load_component_from_file(
 )
 train_op = gcc_exp.run_as_vertex_ai_custom_job(
     component_spec=train_op_raw,
-    display_name='train job',
+    display_name='train-job',
     machine_type='c2-standard-4'
+)
+
+evaluate_op_raw = components.load_component_from_file(
+    'components/evaluate/component.yaml'
+)
+evaluate_op = gcc_exp.run_as_vertex_ai_custom_job(
+    component_spec=evaluate_op_raw,
+    display_name='evaluate-job',
+    machine_type='e2-standard-4'
 )
 
 
@@ -36,11 +45,19 @@ def pipeline(project_id: str,
         gcp_project=project_id,
         gcp_region=region
     )
-    _ = train_op(
+    
+    train_task = train_op(
         train_path=preprocess_task.outputs['train_path'],
         val_path=preprocess_task.outputs['val_path'],
         learning_rate=learning_rate,
         max_depth=max_depth,
+        gcp_project=project_id,
+        gcp_region=region
+    )
+
+    _ = evaluate_op(
+        val_path=preprocess_task.outputs['val_path'],
+        model_path=train_task.outputs['model_path'],
         gcp_project=project_id,
         gcp_region=region
     )
