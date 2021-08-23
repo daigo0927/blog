@@ -16,7 +16,7 @@ def plot_importance(features: List[str],
     ax = df.plot.barh(y='importance', x='feature')
     ax.set_title('LightGBM importance')
     fig = ax.get_figure()
-    fig.savefig(savepath)
+    fig.savefig(savepath, format='png')
     plt.close()
 
 
@@ -40,7 +40,7 @@ def run(val_path: str,
     ]}
 
     with open(metrics_path, 'w') as f:
-        f.write(json.dumps(metrics))
+        json.dump(metrics, f)
 
     plot_importance(
         features=x_val.columns.to_list(),
@@ -55,7 +55,7 @@ if __name__ == '__main__':
                         help='Path to the val csv')
     parser.add_argument('--model-path', type=str, required=True,
                         help='Path to the target model')
-    parser.add_argument('--metrics-path', type=str, required=True,
+    parser.add_argument('--mlpipeline-metrics', type=str, required=True,
                         help='Output metric path')
     parser.add_argument('--visualize-path', type=str, required=True,
                         help='Output visualization path')
