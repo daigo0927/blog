@@ -22,7 +22,7 @@ def plot_importance(features: List[str],
 
 def run(val_path: str,
         model_path: str,
-        metrics_path: str,
+        mlpipeline_metrics: str,
         visualize_path: str) -> None:
     df_val = pd.read_csv(val_path)
     x_val, y_val = df_val.drop(['target'], axis=1), df_val['target']
@@ -36,10 +36,10 @@ def run(val_path: str,
     print(f'Validation accuracy: {acc}')
 
     metrics = {'metrics': [
-        {'name': 'accuracy', 'value': acc, 'format': 'RAW'},
+        {'name': 'accuracy', 'numberValue': acc, 'format': 'RAW'},
     ]}
 
-    with open(metrics_path, 'w') as f:
+    with open(mlpipeline_metrics, 'w') as f:
         json.dump(metrics, f)
 
     plot_importance(
