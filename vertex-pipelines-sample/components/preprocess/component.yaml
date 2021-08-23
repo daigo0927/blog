@@ -1,12 +1,11 @@
 name: preprocess
 description: Preprocess raw data
 inputs:
-  # - {name: src_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the raw csv file'}
   - {name: src_path, type: String, description: 'Path to the raw csv file'}
   - {name: n_splits, type: Integer, default: '3', description: 'Number of train/val splits'}
 outputs:
-  - {name: train_path, type: {GCSPath: {data_type: CSV}}, description: 'Processed train csv file'}
-  - {name: val_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to val csv file'}
+  - {name: train_path, type: Dataset, description: 'Processed train csv file'}
+  - {name: val_path, type: Dataset, description: 'Path to val csv file'}
 metadata:
   annotations:
     author: Daigo Hirooka <daigo.hirooka@example.com>

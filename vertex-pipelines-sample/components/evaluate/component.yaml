@@ -1,11 +1,11 @@
 name: evaluate
 description: Evaluate the trained LightGBM
 inputs:
-  - {name: val_path, type: {GCSPath: {data_type: CSV}}, description: 'Path to the val file'}
-  - {name: model_path, type: {GCSPath: {data_type: LightGBM}}, description: 'Path to the trained LightGBM model'}
+  - {name: val_path, type: Dataset, description: 'Path to the val file'}
+  - {name: model_path, type: Model, description: 'Path to the trained LightGBM model'}
 outputs:
-  - {name: mlpipeline_metrics, type: Metrics, description: 'Path to the metrics file'}
-  - {name: visualize_path, type: {GCSPath: {data_type: PNG}}, description: 'Path to the visualization file'}
+  - {name: metrics_path, type: Metrics, description: 'Path to the metrics file'}
+  - {name: visualize_path, type: ClassificationMetrics, description: 'Path to the visualization file'}
 metadata:
   annotations:
     author: Daigo Hirooka <daigo.hirooka@example.com>
@@ -16,6 +16,6 @@ implementation:
     args: [
       --val-path, {inputPath: val_path},
       --model-path, {inputPath: model_path},
-      --mlpipeline-metrics, {outputPath: mlpipeline_metrics},
+      --metrics-path, {outputPath: metrics_path},
       --visualize-path, {outputPath: visualize_path}
     ]
