@@ -71,7 +71,16 @@ Evaluate the trained LightGBM and visualize feature importance.
   - `mlpipeline_metrics`: Path to the metrics file
   - `visualize_path`: Path to the visualization file
   
-## Build
+## Setup
+
+### GCS Bucket
+
+Create 2 GCS buckets:
+
+- Source dataset bucket: for locating the raw CSV (Palmer Penguins dataset). Replace the `src_path` of L43@pipeline.py
+- Pipeline root bucket: for locating the pipeline artifacts. Replace the `pipeline_root` of L36@pipeline.py
+
+Note that bucket name must be globally unique. Use different bucket names from mine.
 
 ### Docker images
 
