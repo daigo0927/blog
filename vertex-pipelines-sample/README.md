@@ -113,6 +113,6 @@ Currently (2021/08/21) Vertex Pipelines is available as a **preview** version se
 
 - Output file extension cannot be set: Variables with `outoutPath` type in each component are automatically set via Vertex Pipelines not via users. For example, `train_path` in preprocess component is treated as a path like `/gcs/path/to/train_path` in the script.
 - Image file is not visible on Vertex Pipelines UI: Evaluation component visualize feature importance and save it as an artifact but not directory view in the UI.
-- Metrics is no visible on Vertex Pipelines UI: Evaluation component writes accuracy as a metric but not visible the UI.
+- Metrics is not visible on Vertex Pipelines UI: Evaluation component writes accuracy as a metric but not visible the UI.
 
 Though above notes, Vertex Pipelines and KFP are eagerly under development. I'm looking forward the updates.

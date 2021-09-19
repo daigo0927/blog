@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+from pathlib import Path
 from sklearn.model_selection import StratifiedKFold
 
 
@@ -21,6 +22,8 @@ def run(src_path: str,
     df_train = df.iloc[idx_train]
     df_val = df.iloc[idx_val]
 
+    pardir = Path(train_path).parent
+    pardir.mkdir(exist_ok=True, parents=True)
     df_train.to_csv(train_path, index=False)
     df_val.to_csv(val_path, index=False)
     print(f'Save train data to: {train_path}')

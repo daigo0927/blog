@@ -5,6 +5,7 @@ import pandas as pd
 import lightgbm as lgb
 import matplotlib.pyplot as plt
 from typing import List
+from pathlib import Path
 from sklearn.metrics import accuracy_score
 
 
@@ -34,6 +35,9 @@ def run(val_path: str,
     y_pred = y_prob.argmax(axis=-1)
     acc = accuracy_score(y_val, y_pred)
     print(f'Validation accuracy: {acc}')
+
+    pardir = Path(metrics_path).parent
+    pardir.mkdir(exist_ok=True, parents=True)
 
     metrics = {'metrics': [
         {'name': 'accuracy', 'numberValue': acc, 'format': 'RAW'},

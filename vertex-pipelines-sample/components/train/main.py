@@ -1,6 +1,7 @@
 import argparse
 import pandas as pd
 import lightgbm as lgb
+from pathlib import Path
 from sklearn.metrics import accuracy_score
 
 
@@ -55,6 +56,8 @@ def run(train_path: str,
     acc_val = accuracy_score(y_val, y_pred)
     print(f'Validation accuracy: {acc_val}')
 
+    pardir = Path(model_path).parent
+    pardir.mkdir(exist_ok=True, parents=True)
     model.save_model(model_path)
     print(f'Save model to: {model_path}')
 
