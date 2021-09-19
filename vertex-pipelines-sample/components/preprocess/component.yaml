@@ -1,0 +1,21 @@
+name: preprocess
+description: Preprocess raw data
+inputs:
+  - {name: src_path, type: String, description: 'Path to the raw csv file'}
+  - {name: n_splits, type: Integer, default: '3', description: 'Number of train/val splits'}
+outputs:
+  - {name: train_path, type: Dataset, description: 'Processed train csv file'}
+  - {name: val_path, type: Dataset, description: 'Path to val csv file'}
+metadata:
+  annotations:
+    author: Daigo Hirooka <daigo.hirooka@example.com>
+implementation:
+  container:
+    image: gcr.io/machine-learning-dhirooka/vp-sample-preprocess:latest
+    command: [python, main.py]
+    args: [
+      --src-path, {inputValue: src_path},
+      --n-splits, {inputValue: n_splits},
+      --train-path, {outputPath: train_path},
+      --val-path, {outputPath: val_path}
+    ]

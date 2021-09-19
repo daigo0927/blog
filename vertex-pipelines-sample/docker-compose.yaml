@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  preprocess:
+    build:
+      context: ./components/preprocess
+      dockerfile: Dockerfile
+    image: gcr.io/${GCP_PROJECT_ID}/vp-sample-preprocess:latest
+    container_name: preprocess
+  train:
+    build:
+      context: ./components/train
+      dockerfile: Dockerfile
+    image: gcr.io/${GCP_PROJECT_ID}/vp-sample-train:latest
+    container_name: train
+  evaluate:
+    build:
+      context: ./components/evaluate
+      dockerfile: Dockerfile
+    image: gcr.io/${GCP_PROJECT_ID}/vp-sample-evaluate:latest
+    container_name: evaluate
