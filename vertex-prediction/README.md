@@ -2,9 +2,9 @@
 
 Sample resources for serving ML model (predicting penguin species) on Google Cloud Vertex AI.
 
-Vertex AI offers 2 ways to serve ML model: 1) on pre-built containers, 2) on on custom containers. One can use pre-built containers if the model meets several requirements. Custom containers are more flexible way to serve ML model. See details in the [official documentation](https://cloud.google.com/vertex-ai/docs/general/import-model).
+Vertex AI offers 2 ways to serve ML model: 1) on pre-built containers, 2) on custom containers. One can use pre-built containers if the model meets several requirements. Custom containers are more flexible way to serve ML model. See details in the [official documentation](https://cloud.google.com/vertex-ai/docs/general/import-model).
 
-This example use custom containers for demonstrating the flexible model serving.
+This example uses custom containers for demonstrating the flexible model serving.
 
 ## Setup
 
