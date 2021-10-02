@@ -6,6 +6,11 @@ from tasks import celery, calc_bmi
 app = FastAPI()
 
 
+class Body(BaseModel):
+    weight: float
+    height: float
+
+
 class TaskStatus(BaseModel):
     id: str
     status: Optional[str]
@@ -13,8 +18,8 @@ class TaskStatus(BaseModel):
 
 
 @app.post('/bmi', response_model=TaskStatus, response_model_exclude_unset=True)
-def calculate_bmi(weight: float, height: float):
-    task = calc_bmi.delay(weight, height)
+def calculate_bmi(body: Body):
+    task = calc_bmi.delay(weight=body.weight, height=body.height)
     return TaskStatus(id=task.id)
 
 
