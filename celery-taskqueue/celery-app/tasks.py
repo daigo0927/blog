@@ -9,8 +9,8 @@ celery.conf.result_backend = os.environ.get('CELERY_BACKEND_URL',
                                             'redis://localhost:6379')
 
 
-@celery.task(name='bmi_task')
+@celery.task(name='tasks.calc_bmi')
 def calc_bmi(weight: float, height: float) -> float:
-    time.sleep(5)
-    bmi = weight + height**2
+    time.sleep(10)
+    bmi = weight / height**2
     return bmi

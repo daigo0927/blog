@@ -9,36 +9,42 @@ services:
       - dashboard
     ports:
       - 8080:80
+    env_file:
+      - .env      
     environment:
       # See details at https://github.com/tiangolo/uvicorn-gunicorn-docker#advanced-usage
       APP_MODULE: server:app
-      CELERY_BROKER_URL: $CELERY_BROKER_URL
-      CELERY_BACKEND_URL: $CELERY_BACKEND_URL
+      PORT: 80
   worker:
     build:
       context: ./celery-app
       dockerfile: worker.dockerfile
     depends_on:
       - redis
-    command: celery --app tasks.celery worker --loglevel=info # --logfile=logs/celery.log
-    environment:
-      CELERY_BROKER_URL: $CELERY_BROKER_URL
-      CELERY_BACKEND_URL: $CELERY_BACKEND_URL
+    command:
+      - celery
+      - --app=tasks.celery
+      - worker
+      - --loglevel=info
+    env_file:
+      - .env
   dashboard:
     build:
       context: ./celery-app
       dockerfile: worker.dockerfile
     depends_on:
       - redis
-    command: celery --app tasks.celery flower --port=5555
+    command:
+      - celery
+      - --app=tasks.celery
+      - flower
+      - --port=5555
     ports:
-      - 5555:5555
-    environment:
-      CELERY_BROKER_URL: $CELERY_BROKER_URL
-      CELERY_BACKEND_URL: $CELERY_BACKEND_URL
+      - 5556:5555
+    env_file:
+      - .env
   redis:
     image: redis:latest
-    restart: unless-stopped
     volumes:
       - celery_app:/data        
 
