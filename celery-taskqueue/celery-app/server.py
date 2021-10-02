@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from fastapi import FastAPI
 from pydantic import BaseModel
 from tasks import celery, calc_bmi
@@ -14,7 +14,7 @@ class Body(BaseModel):
 class TaskStatus(BaseModel):
     id: str
     status: Optional[str]
-    result: Optional[float]
+    result: Optional[Any]
 
 
 @app.post('/bmi', response_model=TaskStatus, response_model_exclude_unset=True)
