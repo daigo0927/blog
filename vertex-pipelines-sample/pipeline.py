@@ -1,34 +1,10 @@
 from kfp.v2 import dsl, compiler, components
-# from google_cloud_pipeline_components import experimental as gcc_exp
-
-# preprocess_op = gcc_exp.run_as_vertex_ai_custom_job(
-#     component_spec=preprocess_op_raw,
-#     display_name='preprocess-job',
-#     machine_type='e2-standard-4'
-# )
 
 
-# train_op = gcc_exp.run_as_vertex_ai_custom_job(
-#     component_spec=train_op_raw,
-#     display_name='train-job',
-#     machine_type='c2-standard-4'
-# )
-
-
-# evaluate_op = gcc_exp.run_as_vertex_ai_custom_job(
-#     component_spec=evaluate_op_raw,
-#     display_name='evaluate-job',
-#     machine_type='e2-standard-4'
-# )
-
-
-@dsl.pipeline(
-    name='vertex-pipelines-sample',
-    description='Vertex Piplines sample',
-    pipeline_root='gs://vertex-pipelines-sample'
-)
-def pipeline(learning_rate: float = 0.1,
-             max_depth: int = 10) -> None:
+@dsl.pipeline(name='vertex-pipelines-sample',
+              description='Vertex Piplines sample',
+              pipeline_root='gs://vertex-pipelines-sample')
+def pipeline(learning_rate: float = 0.1, max_depth: int = 10) -> None:
     preprocess_op = components.load_component_from_file(
         'components/preprocess/component.yaml'
     )    

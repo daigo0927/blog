@@ -1,30 +1,12 @@
 import json
 import argparse
-import numpy as np
 import pandas as pd
 import lightgbm as lgb
-import matplotlib.pyplot as plt
-from typing import List
 from pathlib import Path
 from sklearn.metrics import accuracy_score
 
 
-def plot_importance(features: List[str],
-                    importances: np.ndarray,
-                    savepath: str) -> None:
-    df = pd.DataFrame({'feature': features, 'importance': importances})
-    df = df.sort_values('importance', ascending=True)
-    ax = df.plot.barh(y='importance', x='feature')
-    ax.set_title('LightGBM importance')
-    fig = ax.get_figure()
-    fig.savefig(savepath, format='png')
-    plt.close()
-
-
-def run(val_path: str,
-        model_path: str,
-        metrics_path: str,
-        visualize_path: str) -> None:
+def run(val_path: str, model_path: str, metrics_path: str) -> None:
     df_val = pd.read_csv(val_path)
     x_val, y_val = df_val.drop(['target'], axis=1), df_val['target']
 
@@ -39,29 +21,31 @@ def run(val_path: str,
     pardir = Path(metrics_path).parent
     pardir.mkdir(exist_ok=True, parents=True)
 
-    metrics = {'metrics': [
-        {'name': 'accuracy', 'numberValue': acc, 'format': 'RAW'},
-    ]}
+    metrics = {
+        'metrics': [{
+            'name': 'accuracy',
+            'numberValue': acc,
+            'format': 'PERCENTAGE'
+        }]
+    }
     with open(metrics_path, 'w') as f:
         json.dump(metrics, f)
-
-    plot_importance(
-        features=x_val.columns.to_list(),
-        importances=model.feature_importance(),
-        savepath=visualize_path
-    )
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate')
-    parser.add_argument('--val-path', type=str, required=True,
+    parser.add_argument('--val-path',
+                        type=str,
+                        required=True,
                         help='Path to the val csv')
-    parser.add_argument('--model-path', type=str, required=True,
+    parser.add_argument('--model-path',
+                        type=str,
+                        required=True,
                         help='Path to the target model')
-    parser.add_argument('--metrics-path', type=str, required=True,
+    parser.add_argument('--metrics-path',
+                        type=str,
+                        required=True,
                         help='Output metric path')
-    parser.add_argument('--visualize-path', type=str, required=True,
-                        help='Output visualization path')
 
     args = parser.parse_args()
     run(**vars(args))
