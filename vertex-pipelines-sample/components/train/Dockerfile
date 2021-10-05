@@ -2,7 +2,7 @@ FROM python:3.8-slim
 WORKDIR /root
 
 RUN apt-get update -y \
-    && apt-get install -y build-essential libgomp1 \
+    && apt-get install -y libgomp1 \
     && apt-get -y clean all
 
 RUN pip install poetry
