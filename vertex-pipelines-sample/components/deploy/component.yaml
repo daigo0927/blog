@@ -1,0 +1,41 @@
+name: deploy
+description: Train on LightGBM
+inputs:
+  - {name: artifact, type: Model, description: 'Path to the trained LightGBM model'}
+  # Vertex AI Model resource config
+  - {name: model_name, type: String, description: 'Name of Model resource'}
+  - {name: serving_container_image_uri, type: String, description: 'Service container URI'}
+  - {name: serving_container_environment_variables, type: Dict, optional: true, description: 'Environment variables'}
+  - {name: serving_container_ports, type: Integer, default: 80, description: 'Service container port'}
+  # Endpoint config
+  - {name: endpoint_name, type: String, description: 'Endpoint name'}
+  # Model deployment config
+  - {name: deploy_name, type: String, description: 'Deployed model name'}
+  - {name: machine_type, type: String, description: 'Machine type'}
+  - {name: min_replicas, type: Integer, default: 1, description: 'Minimum replica count'}
+  - {name: max_replicas, type: Integer, default: 1, description: 'Maximum replica count'}
+  # General config
+  - {name: project, type: String, description: 'GCP project name'}
+  - {name: location, type: String, description: 'Deployment location'}
+metadata:
+  annotations:
+    author: Daigo Hirooka <daigo.hirooka@example.com>
+implementation:
+  container:
+    # See details https://github.com/kubeflow/pipelines/blob/master/components/google-cloud/google_cloud_pipeline_components/container/aiplatform/Dockerfile
+    image: gcr.io/machine-learning-dhirooka/vp-sample-deploy:latest
+    command: [python, main.py]
+    args: [
+      --artifact-uri, {inputPath: artifact},
+      --model-name, {inputValue: model_name},
+      --serving-container-image-uri, {inputValue: serving_container_image_uri},
+      --serving-container-environment-variables, {inputValue: serving_container_environment_variables},
+      --serving-container-ports, {inputValue: serving_container_ports},
+      --endpoint-name, {inputValue: endpoint_name},
+      --deploy-name, {inputValue: deploy_name},
+      --machine-type, {inputValue: machine_type},
+      --min-replicas, {inputValue: min_replicas},
+      --max-replicas, {inputValue: max_replicas},
+      --project, {inputValue: project},
+      --location, {inputValue: location}
+    ]

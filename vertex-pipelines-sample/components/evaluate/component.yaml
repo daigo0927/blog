@@ -1,10 +1,10 @@
 name: evaluate
 description: Evaluate the trained LightGBM
 inputs:
-  - {name: val_path, type: Dataset, description: 'Path to the val file'}
-  - {name: model_path, type: Model, description: 'Path to the trained LightGBM model'}
+  - {name: dataset, type: Dataset, description: 'Processed dataset (train/val) URI'}  
+  - {name: artifact, type: Model, description: 'Directory of trained model'}
 outputs:
-  - {name: MLPipeline Metrics, type: Metrics, description: 'Path to the metrics file'}
+  - {name: metrics, type: Metrics, description: 'Path to the metrics file'}
 metadata:
   annotations:
     author: Daigo Hirooka <daigo.hirooka@example.com>
@@ -13,7 +13,7 @@ implementation:
     image: gcr.io/machine-learning-dhirooka/vp-sample-evaluate:latest
     command: [python, main.py]
     args: [
-      --val-path, {inputPath: val_path},
-      --model-path, {inputPath: model_path},
-      --metrics-path, {outputPath: MLPipeline Metrics}
+      --dataset-uri, {inputPath: dataset},
+      --artifact-uri, {inputPath: artifact},
+      --metrics-uri, {outputPath: metrics}
     ]
