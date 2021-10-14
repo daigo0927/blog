@@ -1,21 +1,21 @@
 import os
 from dotenv import load_dotenv
 from kfp.v2 import dsl, compiler, components
-from google_cloud_pipeline_components import aiplatform as gcc_aip
 
 load_dotenv('.env')
 PROJECT_ID = os.environ.get('GCP_PROJECT_ID')
 LOCATION = os.environ.get('LOCATION')
+SOURCE_CSV_URI = os.environ.get('SOURCE_CSV_URI')
+ROOT_BUCKET = os.environ.get('ROOT_BUCKET')
 
 
 @dsl.pipeline(name='vertex-pipelines-sample',
               description='Vertex Piplines sample',
-              pipeline_root='gs://vertex-pipelines-sample')
+              pipeline_root=ROOT_BUCKET)
 def pipeline(learning_rate: float = 0.1, max_depth: int = 10) -> None:
     preprocess_op = components.load_component_from_file(
         'components/preprocess/component.yaml')
-    preprocess_task = preprocess_op(
-        src_csv='gs://workflow-example-dataset/penguins.csv', n_splits=3)
+    preprocess_task = preprocess_op(src_csv=SOURCE_CSV_URI, n_splits=3)
 
     train_op = components.load_component_from_file(
         'components/train/component.yaml')
