@@ -4,7 +4,7 @@ inputs:
   - {name: dataset, type: Dataset, description: 'Processed dataset (train/val) URI'}  
   - {name: artifact, type: Model, description: 'Directory of trained model'}
 outputs:
-  - {name: metrics, type: Metrics, description: 'Path to the metrics file'}
+  - {name: metrics, type: Artifact, description: 'Path to the metrics file'}
 metadata:
   annotations:
     author: Daigo Hirooka <daigo.hirooka@example.com>
