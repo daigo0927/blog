@@ -4,12 +4,12 @@
 
 This pipeline is composed of 4 components: preprocess, train, evaluate and deploy.
 
-- preprocess: Preprocess source CSV file and split into train/val set
-- train: Train LightGBM model on the processed sets
-- evaluate: Evaluate the trained model on the val set
-- deploy: Deploy the trained model on Vertex AI
+- **preprocess**: Preprocess source CSV file and split into train/val set
+- **train**: Train LightGBM model on the processed sets
+- **evaluation**: Evaluate the trained model on the val set
+- **deploy**: Deploy the trained model on Vertex AI
 
-Exact settings are defined at `components/(preprocess,train,evaluate)/component.yaml`.
+Exact settings are defined at `components/(preprocess,train,evaluate,deploy)`/component.yaml`.
 In addition, `docker/serving` defines the container image to serve the prediction API.
 
 ## Directry overview
@@ -59,7 +59,7 @@ gsutil mb -l <region> gs://<bucket2>
 
 ### Put the original data source on the bucket
 
-The sample pipeline use [Palmer Penguins dataset](https://github.com/mwaskom/seaborn-data/blob/master/penguins.csv). Copy the `dataset/penguins.csv` to `<bucket1>`
+The sample pipeline uses [Palmer Penguins dataset](https://github.com/mwaskom/seaborn-data/blob/master/penguins.csv). Copy the `dataset/penguins.csv` to `<bucket1>`
 
 ```shell
 gsutil cp ./dataset/penguins.csv gs://<bucket1>/penguins.csv
@@ -67,7 +67,7 @@ gsutil cp ./dataset/penguins.csv gs://<bucket1>/penguins.csv
 
 ### Set environment variables
 
-Write the common environment variables on `.env` file. This is reflected when building the containers and compiling the pipeline.
+Write the common environment variables in `.env` file. This is reflected when building the containers and compiling the pipeline.
 
 ```shell
 GCP_PROJECT_ID=<your GCP project id>
@@ -85,7 +85,7 @@ docker compose build
 docker compose push
 ```
 
-## 2. Compile pipeline
+## 2. Compile the pipeline
 
 Install dependencies and compile the pipeline. I recommend to use python virtual environment (like pyenv).
 
@@ -96,10 +96,10 @@ python pipeline.py  # compile
 
 `pipeline.py` generates `vertex-pipelines-sample.json` which contains pipeline information.
 
-## 3. Run pipeline
+## 3. Run the pipeline
 
-Execute the pipeline based on the generated `vertex-pipelines-sample.json` at Cloud Console.
-Move [Vertex AI>Pipelines] on browser and [+CREATE RUN]. Choose the JSON as a pipeline file, set Run name, specify some pipeline parameters, and submit to start the pipeline. 
+Execute the pipeline via the generated `vertex-pipelines-sample.json` at Cloud Console.
+Move [Vertex AI>Pipelines] on browser and [+CREATE RUN]. Choose the JSON as a pipeline file, set Run name, specify some pipeline parameters, and [SUBMIT] to launch the pipeline.
 
 Submitted pipeline can be visualized on the browser like below:
 
@@ -107,7 +107,7 @@ Submitted pipeline can be visualized on the browser like below:
 
 ## Optional: Request prediction
 
-This pipeline finally deploy the trained model to the Prediction Endpoint. The endpoint is ready to serve so that We can request a prediction. You can check the Model and Endpoint resources at [Vertex AI>Models] and [Vertex AI>Endpoints].
+This pipeline finally deploy the trained model to the Prediction Endpoint. The endpoint is ready to serve so that we can request a prediction. You can check the Model and Endpoint resources at [Vertex AI>Models] and [Vertex AI>Endpoints].
 
 For example, prediction request via cURL is like:
 
@@ -125,7 +125,7 @@ https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/location
 -d "@${INPUT_DATA_FILE}"
 ```
 
-If you want to remove an endpoint resource, 1) undeploy a tied model from the endpoint then 2) remove the endpoint. Undeployed model resource can be deployed to another endpoint. Enjoy! :)
+If you want to remove an endpoint resource, 1) undeploy tied models from the endpoint then 2) remove the endpoint. Undeployed model resource can be deployed to another endpoint.
 
 # Component details
 
