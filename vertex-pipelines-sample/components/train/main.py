@@ -1,26 +1,20 @@
 import argparse
 import pandas as pd
 import lightgbm as lgb
+import joblib
 from pathlib import Path
 from sklearn.metrics import accuracy_score
-
 
 SEED = 42
 
 
-def run(train_path: str,
-        val_path: str,
-        model_path: str,
-        learning_rate: float,
-        max_depth: int,
-        bagging_fraction: float,
-        feature_fraction: float,
-        lambda_l1: float,
-        lambda_l2: float,
-        min_data_in_leaf: int,
+def run(dataset_uri: str, artifact_uri: str, learning_rate: float,
+        max_depth: int, bagging_fraction: float, feature_fraction: float,
+        lambda_l1: float, lambda_l2: float, min_data_in_leaf: int,
         num_leaves: int) -> None:
-    df_train = pd.read_csv(train_path)
-    df_val = pd.read_csv(val_path)
+    dataset_dir = Path(dataset_uri)
+    df_train = pd.read_csv(dataset_dir / 'train.csv')
+    df_val = pd.read_csv(dataset_dir / 'val.csv')
     print(f'Data size: train: {df_train.shape}, val: {df_val.shape}')
 
     x_train, y_train = df_train.drop(['target'], axis=1), df_train['target']
@@ -56,20 +50,16 @@ def run(train_path: str,
     acc_val = accuracy_score(y_val, y_pred)
     print(f'Validation accuracy: {acc_val}')
 
-    pardir = Path(model_path).parent
-    pardir.mkdir(exist_ok=True, parents=True)
-    model.save_model(model_path)
-    print(f'Save model to: {model_path}')
+    model_dir = Path(artifact_uri)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, model_dir / 'model.joblib')
+    print(f'Save model in: {artifact_uri}')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train')
-    parser.add_argument('--train-path', type=str, required=True,
-                        help='Path to the train csv')
-    parser.add_argument('--val-path', type=str, required=True,
-                        help='Path to the val csv')
-    parser.add_argument('--model-path', type=str, required=True,
-                        help='Path for putting the trained model')
+    parser.add_argument('--dataset-uri', type=str)
+    parser.add_argument('--artifact-uri', type=str)
     parser.add_argument('--learning-rate', type=float, default=0.1)
     parser.add_argument('--max-depth', type=int, default=10)
     parser.add_argument('--bagging-fraction', type=float, default=0.7)

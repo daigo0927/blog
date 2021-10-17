@@ -1,118 +1,180 @@
-# ML workflow on Vertex Pipelines
+# End-to-End ML workflow on Vertex Pipelines
 
-## Directry overview
+## Pipeline overview
+
+The sample pipeline is composed of 4 components: preprocess, train, evaluate and deploy.
+
+- **preprocess**: Preprocess source CSV file and split into train/val set
+- **train**: Train LightGBM model on the processed sets
+- **evaluation**: Evaluate the trained model on the val set
+- **deploy**: Deploy the trained model on Vertex AI
+
+Exact settings are defined at `components/(preprocess,train,evaluate,deploy)/component.yaml`.
+In addition, `docker/serving` defines the container image to serve the prediction API, specified in the deploy process.
+
+## Directry structure
 
 ```
 vertex-pipelines-sample
+├── .env(.dummy)
 ├── README.md
 ├── components
-│   ├── evaluate
+│   ├── deploy
 │   │   ├── Dockerfile
 │   │   ├── component.yaml
 │   │   ├── main.py
 │   │   ├── poetry.lock
 │   │   └── pyproject.toml
+│   ├── evaluate
+│   │   └── ...
 │   ├── preprocess
-│   │   ├── .dockerignore
-│   │   ├── Dockerfile
-│   │   ├── component.yaml
-│   │   ├── main.py
-│   │   ├── poetry.lock
-│   │   ├── pyproject.toml
+│   │   └── ...
 │   └── train
-│       ├── .dockerignore
-│       ├── Dockerfile
-│       ├── component.yaml
-│       ├── main.py
-│       ├── poetry.lock
-│       └── pyproject.toml
+│       └── ...
+├── docker
+│   └── serving
+│       ├── Dockerfile
+│       ├── server.py
+│       ├── poetry.lock
+│       └── pyproject.toml
 ├── docker-compose.yaml
 ├── pipeline.py
 └── requirements.txt
-
 ```
 
-## Components
+# How to Run
 
-This pipeline is composed of 3 components: preprocess, train, evaluate.
-Exact settings are defined at `components/(preprocess,train,evaluate)/component.yaml`
+Assuming you have a GCP account for running Vertex Pipelines and the related Google Cloud services.
 
-### Preprocess
+## 1. Setup
 
-Drop unnecessary columns and split raw csv into train/val files. I use [Palmer Penguins dataset](https://github.com/mwaskom/seaborn-data/blob/master/penguins.csv) and locate it on `src_path` of GCS (i.e. `gs://<bucket>/penguins.csv`).
+### Create GCS buckets
 
-- inputs:
-  - `src_path`: Path to the raw CSV file (assuming GCS)
-  - `n_splits`: Split of train/val set. (n-1)/n is assigned to train, 1/n is to validation
-- outputs:
-  - `train_path`: Path to the output train file
-  - `val_path`: Path to the output val file
+This sample uses 2 Cloud Storage buckets (can be same). One for storing the original data CSV file, and another for the pipeline artifacts.
 
-### Train
+``` shell
+gsutil mb -l <region> gs://<bucket1>
+gsutil mb -l <region> gs://<bucket2>
+```
 
-Train LightGBM using train set and early-stop on validation set.
+### Put the original data source on the bucket
 
-- inputs:
-  - `train_path`: Path to the train file
-  - `val_path`: Path to the val file
-  - `learning_rate`: Learning rate for LightGBM training
-  - `max_depth`: Maximum depth for single tree
-- outputs:
-  - `model_path`: Path to the resulting model file
+The sample pipeline uses [Palmer Penguins dataset](https://github.com/mwaskom/seaborn-data/blob/master/penguins.csv). Copy the `dataset/penguins.csv` to `<bucket1>`
 
-### Evaluate
+```shell
+gsutil cp ./dataset/penguins.csv gs://<bucket1>/penguins.csv
+```
 
-Evaluate the trained LightGBM and visualize feature importance.
+### Set environment variables
 
-- inputs:
-  - `val_path`: Path to the val file
-  - `model_path`: Model file for evaluation
-- outputs:
-  - `mlpipeline_metrics`: Path to the metrics file
-  - `visualize_path`: Path to the visualization file
-  
-## Setup
+Write the common environment variables in `.env` file. This is reflected when building the containers and compiling the pipeline.
 
-### GCS Bucket
+```shell
+GCP_PROJECT_ID=<your GCP project id>
+LOCATION=<GCP region same as 2 buckets>
+SOURCE_CSV_URI=gs://<bucket1>/penguins.csv
+ROOT_BUCKET=gs://<bucket2>
+```
 
-Create 2 GCS buckets:
+### Build and ship container images
 
-- Source dataset bucket: for locating the raw CSV (Palmer Penguins dataset). Replace the `src_path` of L43 at pipeline.py
-- Pipeline root bucket: for locating the pipeline artifacts. Replace the `pipeline_root` of L36 at pipeline.py
+Build containers and push them into Container Registry. This may take a few minutes.
 
-Note that bucket name must be globally unique. Use different bucket names from mine.
-
-### Docker images
-
-``` bash
-# set GCP project id as environment variable
-export GCP_PROJECT_ID=<gcp-project-id>
-
-# Build images and push into container repository
+```shell
 docker compose build
 docker compose push
 ```
 
-### Pipeline
+## 2. Compile the pipeline
 
-``` bash
-# install build dependencies (virtualenv recommended)
-pip install -r requirements.txt
+Install dependencies and compile the pipeline. I recommend to use python virtual environment (like pyenv).
 
-# build pipeline, output vertex-pipelines-sample.json
-python pipeline.py
+```
+pip install kfp==1.7.1 python-dotenv==0.19.1  # minimum dependencies
+python pipeline.py  # compile
 ```
 
-## Run
+`pipeline.py` generates `vertex-pipelines-sample.json` which contains pipeline information.
 
-Upload the generated pipeline JSON file in Cloud Console. Put required parameters (in this sample, project_id and region). Submit the pipeline execution.
+## 3. Run the pipeline
 
-## Notes
+Execute the pipeline via the generated `vertex-pipelines-sample.json` at Cloud Console.
+Move [Vertex AI>Pipelines] on browser and [+CREATE RUN]. Choose the JSON as a pipeline file, set Run name, specify some pipeline parameters, and [SUBMIT] to launch the pipeline.
 
-Currently (2021/08/21) Vertex Pipelines is available as a **preview** version service. There were a few points I have not figured out;
+Submitted pipeline can be visualized on the browser like below:
 
-- Output file extension cannot be set: Variables with `outoutPath` type in each component are automatically set via Vertex Pipelines not via users. For example, `train_path` in preprocess component is treated as a path like `/gcs/path/to/train_path` in the script.
-- Image file is not visible on Vertex Pipelines UI: Evaluation component visualize feature importance and save it as an artifact but not directory view in the UI.
-- Metrics is not visible on Vertex Pipelines UI: Evaluation component writes accuracy as a metric but not visible the UI.
+![Generated pipeline](https://user-images.githubusercontent.com/23152884/137509509-05bd5a70-3d27-4a80-b3d4-a314c2770f77.png)
 
-Though above notes, Vertex Pipelines and KFP are eagerly under development. I'm looking forward the updates.
+## Optional: Request prediction
+
+This pipeline finally deploy the trained model to the Prediction Endpoint. The endpoint is ready to serve so that we can request a prediction. You can check the Model and Endpoint resources at [Vertex AI>Models] and [Vertex AI>Endpoints].
+
+For example, prediction request via cURL is like:
+
+``` shell
+PROJECT_ID=`gcloud config list --format 'value(core.project)'`
+LOCATION=<endpoint-region>
+ENDPOINT_ID=<deployed-endpoint-id>  # Check from [Vertex AI>Endpoints]
+INPUT_DATA_FILE=sample-request.json
+
+curl \
+-X POST \
+-H "Authorization: Bearer $(gcloud auth print-access-token)" \
+-H "Content-Type: application/json" \
+https://${LOCATION}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/endpoints/${ENDPOINT_ID}:predict \
+-d "@${INPUT_DATA_FILE}"
+```
+
+If you want to remove an endpoint resource, 1) undeploy tied models from the endpoint then 2) remove the endpoint. Undeployed model resource can be deployed to another endpoint.
+
+# Component details
+
+In Kubeflow Pipelines, each input/output type is defined in `component.yaml`. See the [official documentation](https://www.kubeflow.org/docs/components/pipelines/sdk/component-development/) for details.
+
+## Preprocess
+
+Drop unnecessary columns and split raw csv into train/val files.
+
+- inputs:
+  - `src_csv: String`: GCS path to the raw CSV file
+  - `n_splits: Integer`: Split of train/val set. (n-1)/n is assigned to train, 1/n is to validation
+- outputs:
+  - `dataset: Dataset`: Processed dataset URI. In this example, this is a directory containing train/val.csv
+
+## Train
+
+Train LightGBM using train set and early-stop on validation set.
+
+- inputs:
+  - `dataset: Dataset`: Output from preprocess component
+  - `learning_rate: Float`: Learning rate for LightGBM training
+  - `max_depth: Integer`: Max tree depth
+- outputs:
+  - `artifact: Model`: Trained model artifacts. In this example, this is a directory containing `model.joblib` file.
+
+## Evaluate
+
+Evaluate the trained LightGBM.
+
+- inputs:
+  - `dataset: Dataset`: Output from preprocess component
+  - `artifact: Model`: Output from train component
+- outputs:
+  - `metrics: Artifact`: Evaluation metrics artifacts. In this example, this is a directory containing metrics JSON file.
+  
+## Deploy
+
+- inputs:
+  - `artifact: Model`: Output from train component
+  - parameters for configuring Vertex AI Model and Endpoint
+- outputs: None
+  
+
+# Notes
+
+Currently (2021/10/17) Vertex Pipelines is available as a **preview** version service. There were a few points I have not figured out:
+
+- Output file extension cannot be set: Component variables with `outoutPath` type are automatically set via Vertex Pipelines not via users. For example, `artifact` variable in train component is treated as a path like `/gcs/<ROOT_BUCKET>/path/to/artifact` in the script. This makes a file type umbiguous, so I implement this as a directory and create actual files in it.
+- It is unclear to use pipeline metrics and visualizations with container components: Though metrics and visualization utilities are introduced in the [Kubeflow Pipelines docs](https://www.kubeflow.org/docs/components/pipelines/sdk/pipelines-metrics/), it is not clear to use them in Vertex Pipelines.
+
+Though above notes, Vertex Pipelines and KFP are eagerly under development. I'm looking forward to see more updates and samples :)
