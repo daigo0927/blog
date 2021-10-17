@@ -1,18 +1,18 @@
 # End-to-End ML workflow on Vertex Pipelines
 
-## Components
+## Pipeline overview
 
-This pipeline is composed of 4 components: preprocess, train, evaluate and deploy.
+The sample pipeline is composed of 4 components: preprocess, train, evaluate and deploy.
 
 - **preprocess**: Preprocess source CSV file and split into train/val set
 - **train**: Train LightGBM model on the processed sets
 - **evaluation**: Evaluate the trained model on the val set
 - **deploy**: Deploy the trained model on Vertex AI
 
-Exact settings are defined at `components/(preprocess,train,evaluate,deploy)`/component.yaml`.
-In addition, `docker/serving` defines the container image to serve the prediction API.
+Exact settings are defined at `components/(preprocess,train,evaluate,deploy)/component.yaml`.
+In addition, `docker/serving` defines the container image to serve the prediction API, specified in the deploy process.
 
-## Directry overview
+## Directry structure
 
 ```
 vertex-pipelines-sample
@@ -50,7 +50,7 @@ Assuming you have a GCP account for running Vertex Pipelines and the related Goo
 
 ### Create GCS buckets
 
-This sample use 2 Cloud Storage buckets (can be same). One for storing the original data CSV file, and another for the pipeline artifacts.
+This sample uses 2 Cloud Storage buckets (can be same). One for storing the original data CSV file, and another for the pipeline artifacts.
 
 ``` shell
 gsutil mb -l <region> gs://<bucket1>
