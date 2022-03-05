@@ -123,7 +123,7 @@ streamlit==0.82.0
 tensorboard==2.5.0
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.0
-tensorflow==2.5.1
+tensorflow==2.5.3
 tensorflow-estimator==2.5.0
 termcolor==1.1.0
 terminado==0.10.1
