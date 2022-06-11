@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  mmdet2onnx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mmdet2onnx:latest
+    container_name: mmdet2onnx
+    tty: true
+    command: jupyter lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser
+    volumes:
+      - ./panopticfpn_onnx.ipynb:/root/panopticfpn_onnx.ipynb
+      - ./checkpoints:/root/checkpoints
+      - ./onnx_models:/root/onnx_models
+    ports:
+      - 8888:8888
