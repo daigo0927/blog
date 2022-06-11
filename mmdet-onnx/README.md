@@ -13,7 +13,7 @@ For 1. this example uses Microsoft's contrib operation as a counterpart for `F.g
 
 ## Export steps
 
-Download PanopticFPN checkpoint from MMDetection: [https://download.openmmlab.com/mmdetection/v2.0/panoptic_fpn/panoptic_fpn_r50_fpn_1x_coco/panoptic_fpn_r50_fpn_1x_coco_20210821_101153-9668fd13.pth](DL link), place it under `checkpoints` directory.
+Download PanopticFPN checkpoint from MMDetection [download link](https://download.openmmlab.com/mmdetection/v2.0/panoptic_fpn/panoptic_fpn_r50_fpn_1x_coco/panoptic_fpn_r50_fpn_1x_coco_20210821_101153-9668fd13.pth), place it under `checkpoints` directory.
 
 Build and run docker container:
 
