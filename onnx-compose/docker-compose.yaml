@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  onnx-compose:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: onnx-compose:latest
+    container_name: onnx-compose
+    tty: true
+    command: jupyter lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser
+    volumes:
+      - ./compose_onnx_ops.ipynb:/root/compose_onnx_ops.ipynb
+      - ./onnx_models:/root/onnx_models
+      - ./assets:/root/assets
+      - ~/.cache:/root/.cache
+    ports:
+      - 8888:8888
