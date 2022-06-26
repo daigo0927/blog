@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  mmdeploy-export:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mmdeploy-export:latest
+    container_name: mmdeploy-export
+    tty: true
+    command: jupyter lab --allow-root --ip=0.0.0.0 --port=8888 --no-browser
+    volumes:
+      - ./sample.ipynb:/root/workspace/sample.ipynb
+      - ./checkpoints:/root/workspace/checkpoints
+      - ./onnx_models:/root/workspace/onnx_models
+    ports:
+      - 8888:8888
