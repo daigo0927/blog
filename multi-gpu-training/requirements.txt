@@ -3,7 +3,7 @@ albumentations==0.5.2
 astunparse==1.6.3
 attrs==21.2.0
 cachetools==4.2.2
-certifi==2020.12.5
+certifi==2022.12.7
 chardet==4.0.0
 cycler==0.10.0
 decorator==4.4.2
