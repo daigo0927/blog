@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  lgb-penguin-prediction:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: asia.gcr.io/${GCP_PROJECT_ID}/lgb-penguin-prediction
+    container_name: lgb-penguin-prediction
+    restart: unless-stopped
+    environment:
+      APP_MODULE: server:app
+    ports:
+      - 80:80
+    volumes:
+      - ./app:/app
+    # launch uvicorn with hot-reload (not gunicorn as default)
+    command: ['/start-reload.sh']

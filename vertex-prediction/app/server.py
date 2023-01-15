@@ -39,7 +39,7 @@ class Prediction(BaseModel):
     confidence: Optional[float]
 
 
-class Predictions(BaseModel):
+class Response(BaseModel):
     predictions: List[Prediction]
 
 
@@ -49,7 +49,7 @@ async def health():
 
 
 @app.post(AIP_PREDICT_ROUTE,
-          response_model=Predictions,
+          response_model=Response,
           response_model_exclude_unset=True)
 async def predict(instances: List[PenguinFeature],
                   parameters: Optional[Parameters] = None):
@@ -64,13 +64,12 @@ async def predict(instances: List[PenguinFeature],
     else:
         return_confidence = False
 
-    outputs = []
+    predictions = []
     for index, confidence in zip(indices, confidences):
         specie = Specie(index).name
         if return_confidence:
-            outputs.append(Prediction(specie=specie, confidence=confidence))
+            predictions.append(Prediction(specie=specie, confidence=confidence))
         else:
-            outputs.append(Prediction(specie=specie))
+            predictions.append(Prediction(specie=specie))
             
-    return Predictions(predictions=outputs)
-    
+    return Response(predictions=predictions)    
