@@ -131,7 +131,7 @@ Send2Trash==1.8.0
 sexpdata==0.0.3
 six==1.16.0
 snowballstemmer==2.1.0
-starlette==0.14.2
+starlette==0.25.0
 strip-hints==0.1.10
 tabulate==0.8.9
 termcolor==1.1.0
