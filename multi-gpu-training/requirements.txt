@@ -63,5 +63,5 @@ torchvision==0.9.1+cu111
 tqdm==4.60.0
 typing-extensions==3.7.4.3
 urllib3==1.26.5
-Werkzeug==2.0.0
+Werkzeug==2.2.3
 wrapt==1.12.1
